@@ -10,7 +10,6 @@ import SecretaryLoginPage from "./pages/SecretaryPages/SecretaryLoginPage";
 import ChoicePage from "./pages/ChoicePages/ChoicePage";
 import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import DoctorLoginPage from "./pages/DoctorPages/DoctorLoginPage";
-import Test from "./test";
 import AdminRDV from "./pages/AdminPages/AdminRDV";
 import AdminPatients from "./pages/AdminPages/AdminPatients";
 import SecretaryDashboard from "./pages/SecretaryPages/SecretaryDashboard";
