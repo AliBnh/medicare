@@ -48,6 +48,7 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
   CubeTransparentIcon,
+  ArrowRightStartOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -123,8 +124,8 @@ function SuperAdminAddCabinet() {
 
   return (
     <div className="backdrop-blur-none relative transition duration-500 ease-in-out w-screen h-screen flex justify-start items-start">
-      <div className="flex w-full h-full sm:h-fit flex-col transition duration-500 ease-in-out transform  justify-center items-start bg-white py-4 px-16 sm:px-4">
-        <Navbar className="z-50 sticky shadow-none top-0 max-w-screen-xl py-1 px-0 lg:py-1">
+      <div className="flex w-full h-full sm:h-fit flex-col transition duration-500 ease-in-out transform  justify-center items-start bg-gray-100  py-4 px-16 sm:px-4">
+        <Navbar className="z-50 sticky shadow-none top-0 max-w-screen-xl py-1 px-0 lg:py-1 bg-gray-100  border-0">
           <div className="container flex flex-row items-center justify-between text-blue-gray-900">
             <div className="w-full flex items-start justify-start mt-1">
               <img className=" h-10 -ml-2" src={logoImage} alt="Logo" />
@@ -134,18 +135,18 @@ function SuperAdminAddCabinet() {
                 <Button
                   onClick={handleLogout}
                   variant="gradient"
-                  size="md"
+                  size="sm"
                   className=""
                   color="red"
                 >
-                  <span>Deconnexion</span>
+                  <ArrowRightStartOnRectangleIcon className="text-white h-5 w-5" />
                 </Button>
               </div>
             </div>
           </div>
         </Navbar>
-        <Card className="h-full w-full mt-10">
-          <div className="flex px-16 pt-4 justify-start items-center gap-2">
+        <Card className="h-full w-8/12  mt-10 mb-6 mx-auto">
+          <div className="flex px-16 pt-4 justify-start items-center gap-2 mt-2">
             <Typography variant="h4" color="gray" className="opacity-50">
               Cabinets
             </Typography>
@@ -170,7 +171,7 @@ function SuperAdminAddCabinet() {
                       name="code-cabinet"
                       id="code-cabinet"
                       className="h-10 border mt-1 rounded px-4 w-full bg-gray-50"
-                      placeholder="code cabinet"
+                      placeholder=""
                       value={codeCabinet}
                       onChange={(e) => setCodeCabinet(e.target.value)}
                     />
@@ -308,17 +309,21 @@ function SuperAdminAddCabinet() {
                     />
                   </div>
                 </div>
-                <div className="flex w-full flex-row justify-end gap-1 my-4">
+                <div className="flex w-full flex-row justify-end gap-1 my-2 mt-16 ">
                   <Button
                     onClick={() => {
                       navigate("/superAdmin/dashboard");
                     }}
                     variant="outlined"
-                    color="gray"
+                    color="blue-gray"
                   >
                     Annuler
                   </Button>
-                  <Button onClick={handleAddCabinet} variant="filled">
+                  <Button
+                    onClick={handleAddCabinet}
+                    variant="filled"
+                    color="indigo"
+                  >
                     Ajouter Cabinet
                   </Button>
                 </div>

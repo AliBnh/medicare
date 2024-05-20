@@ -69,6 +69,10 @@ function SuperAdminLogin() {
 
   const handleLogin = async () => {
     try {
+      if (email === "" || password === "") {
+        alert("Veuillez remplir tous les champs");
+        return;
+      }
       const response = await axios
         .post("http://localhost:3001/login", {
           username: email,
@@ -80,15 +84,17 @@ function SuperAdminLogin() {
             response.data.loginService.accessToken
           );
           localStorage.setItem("role", response.data.role);
+          if (response.status === 200) {
+            navigate("/superAdmin/dashboard");
+          } else {
+            console.log("status:", response.status);
+            alert("Combinaison email/mot de passe incorrecte");
+            navigate("/superAdmin/login");
+          }
         });
-
-      if (response.status === 200) {
-        navigate("/superAdmin/dashboard");
-      } else {
-        console.log("erreur de connexion");
-      }
     } catch (error) {
       console.error("error:", error);
+      alert("Combinaison email/mot de passe incorrecte");
     }
   };
 
@@ -125,7 +131,7 @@ function SuperAdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <div className="flex w-full items-center justify-start">
+            {/* <div className="flex w-full items-center justify-start">
               <label
                 className="relative flex items-center mr-1 rounded-full cursor-pointer"
                 htmlFor="check"
@@ -158,7 +164,7 @@ function SuperAdminLogin() {
               >
                 Se souvenir de moi
               </label>
-            </div>
+            </div> */}
             <button
               onClick={handleLogin}
               className="mt-3 mb-6 w-full h-12 text-xl font-medium text-center text-white rounded-md border border-solid border-submit-color bg-super-admin-submit transition duration-500 ease-in-out hover:text-black hover:border-login-color hover:bg-super-admin-submit-hover"

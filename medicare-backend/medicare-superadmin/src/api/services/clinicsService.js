@@ -14,6 +14,28 @@ const getClinics = async () => {
     });
   });
 };
+const searchClinic = async (term) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      "SELECT * FROM clinics WHERE code LIKE ? OR address LIKE ? OR phone LIKE ? OR email LIKE ? OR city LIKE ? OR postal_code LIKE ?",
+      [
+        "%" + term + "%",
+        "%" + term + "%",
+        "%" + term + "%",
+        "%" + term + "%",
+        "%" + term + "%",
+        "%" + term + "%",
+      ],
+      (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+  });
+};
 
 const createClinic = async (
   code,
@@ -53,4 +75,4 @@ const deleteClinic = async (id) => {
   });
 };
 
-module.exports = { getClinics, createClinic, deleteClinic };
+module.exports = { getClinics, createClinic, deleteClinic, searchClinic };

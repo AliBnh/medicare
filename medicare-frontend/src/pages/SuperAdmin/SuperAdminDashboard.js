@@ -50,6 +50,7 @@ import {
   CubeTransparentIcon,
   Bars3Icon,
   XMarkIcon,
+  ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import {
   LayoutDashboard,
@@ -65,7 +66,12 @@ import {
 function SuperAdminDashboard() {
   const [idToDelete, setIdToDelete] = useState();
   const [clinics, setClinics] = useState([]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(clinics?.length / itemsPerPage) || 1;
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
   useEffect(() => {
     function fetchClinics() {
       const token = localStorage.getItem("access-token");
@@ -91,6 +97,32 @@ function SuperAdminDashboard() {
 
     fetchClinics();
   }, []);
+  const searchCabinet = (value) => {
+    if (value === "") {
+      window.location.reload();
+    }
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    if (token) {
+      axios
+        .get(`http://localhost:3001/clinics/search/${value}`, {
+          headers: {
+            "access-token": token,
+            role: role,
+          },
+        })
+        .then((respone) => {
+          if (respone.data.length > 0) {
+            setClinics(respone.data);
+          } else {
+            setClinics([]);
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  };
 
   //console.log(clinics);
 
@@ -114,6 +146,11 @@ function SuperAdminDashboard() {
 
   const handleCancel = () => {
     setIdToDelete(null);
+  };
+  const getVisibleClinics = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return clinics?.slice(startIndex, endIndex);
   };
 
   const handleDelete = (id) => {
@@ -146,12 +183,10 @@ function SuperAdminDashboard() {
     "Actions",
   ];
 
-  const TABLE_ROWS = clinics;
-
   return (
-    <div className="backdrop-blur-none relative transition duration-500 ease-in-out transform w-screen h-screen flex justify-center items-center">
-      <div className="flex w-full h-full overflow-hidden lg:h-full flex-col transition duration-500 ease-in-out transform  justify-center items-start bg-white py-4 px-16 sm:px-4">
-        <Navbar className="z-10 sticky shadow-none top-0 max-w-screen-xl py-1 px-0 lg:py-1">
+    <div className="backdrop-blur-none relative transition duration-500 ease-in-out transform w-screen h-screen flex justify-center items-center ">
+      <div className="flex w-full h-full overflow-hidden lg:h-full flex-col transition duration-500 ease-in-out transform  justify-center items-start bg-gray-100 py-4 px-16 sm:px-4">
+        <Navbar className="z-10 sticky shadow-none top-0 max-w-screen-xl py-1 px-0 lg:py-1 bg-gray-100 border-0">
           <div className="container flex flex-row items-center justify-between text-blue-gray-900">
             <div className="w-full flex items-start justify-start mt-1">
               <img className=" h-10 -ml-2" src={logoImage} alt="Logo" />
@@ -161,18 +196,18 @@ function SuperAdminDashboard() {
                 <Button
                   onClick={handleLogout}
                   variant="gradient"
-                  size="md"
+                  size="sm"
                   className=""
                   color="red"
                 >
-                  <span>Deconnexion</span>
+                  <ArrowRightStartOnRectangleIcon className="text-white h-5 w-5" />
                 </Button>
               </div>
             </div>
           </div>
         </Navbar>
 
-        <Card className="h-full w-full mt-10">
+        <Card className="h-full w-11/12  mt-8 mb-6 mx-auto">
           <CardHeader floated={false} shadow={false} className="rounded-none">
             <div className="mb-8 flex items-center justify-between gap-8">
               <div>
@@ -192,18 +227,19 @@ function SuperAdminDashboard() {
               </div>
             </div>
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-              <div className="w-full mb-8">
+              <div className="w-11/12 mb-8 ">
                 <Input
                   label="Rechercher un cabinet"
                   icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                  onChange={(e) => searchCabinet(e.target.value)}
                 />
               </div>
             </div>
           </CardHeader>
-          <CardBody className="overflow-scroll px-0">
+          <CardBody className="overflow-auto px-0">
             {clinics ? (
               <table className="mt-4 w-full min-w-max table-auto text-left border rounded-xl	">
-                <thead>
+                <thead className="">
                   <tr>
                     {TABLE_HEAD.map((head) => (
                       <th
@@ -212,8 +248,7 @@ function SuperAdminDashboard() {
                       >
                         <Typography
                           variant="small"
-                          color="blue-gray"
-                          className="font-normal leading-none opacity-70"
+                          className={"font-normal leading-none opacity-70 "}
                         >
                           {head}
                         </Typography>
@@ -222,14 +257,14 @@ function SuperAdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {TABLE_ROWS.map(
+                  {getVisibleClinics().map(
                     (
                       { code, address, email, phone, postal_code, id },
                       index
                     ) => {
-                      const isLast = index === TABLE_ROWS.length - 1;
+                      const isLast = index === getVisibleClinics().length - 1;
                       const classes = isLast
-                        ? "p-4"
+                        ? "p-4 "
                         : "p-4 border-b border-blue-gray-50";
 
                       return (
@@ -242,7 +277,7 @@ function SuperAdminDashboard() {
                                   color="blue-gray"
                                   className="font-normal"
                                 >
-                                  Cabinet{code}
+                                  {code}
                                 </Typography>
                               </div>
                             </div>
@@ -288,28 +323,18 @@ function SuperAdminDashboard() {
                             </Typography>
                           </td>
                           <td className={classes}>
-                            <div className="flex items-center justify-start gap-0">
-                              <Button
-                                size="sm"
-                                variant="text"
-                                className="flex items-center gap-2"
-                              >
-                                <PencilIcon className="h-4 w-4 text-gray-600" />
-                                <Typography className="!font-semibold text-xs text-gray-600 sm:hidden block">
-                                  Modifier
-                                </Typography>
+                            <div className="flex  justify-start">
+                              <Button size="sm" variant="text" className=" ">
+                                <PencilIcon className="h-4 w-4 text-gray-600 ml-[-1rem] " />
                               </Button>
                               <Button
                                 onClick={() => setIdToDelete(id)}
                                 size="sm"
                                 variant="text"
                                 color="red"
-                                className="flex items-center gap-2"
+                                className=" ml-[-10px]"
                               >
-                                <TrashIcon className="h-4 w-4 text-red-500" />
-                                <Typography className="!font-semibold text-xs text-red-500 sm:hidden block">
-                                  Supprimer
-                                </Typography>
+                                <TrashIcon className="h-4 w-4 text-red-500 " />
                               </Button>
                             </div>
                           </td>
@@ -348,19 +373,31 @@ function SuperAdminDashboard() {
               </div>
             )}
           </CardBody>
-          <CardFooter className="flex items-center justify-between border-blue-gray-50 p-4 pt-0 mb-4">
+          <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4 absolute bottom-2 w-full ">
             <Typography
               variant="small"
               color="blue-gray"
               className="font-normal"
             >
-              Page 1 de 10
+              Page {currentPage} sur {totalPages}
             </Typography>
             <div className="flex gap-2">
-              <Button variant="outlined" size="sm">
-                Précédant
+              <Button
+                variant="outlined"
+                size="sm"
+                color="indigo"
+                disabled={currentPage === 1} // Disable previous button on first page
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Précédent
               </Button>
-              <Button variant="outlined" size="sm">
+              <Button
+                variant="outlined"
+                size="sm"
+                color="indigo"
+                disabled={currentPage === totalPages} // Disable next button on last page
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
                 Suivant
               </Button>
             </div>
