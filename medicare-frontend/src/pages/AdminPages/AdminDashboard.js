@@ -96,7 +96,7 @@ function AdminDashboard() {
     },
   ];
 
-  const TABLE_HEAD = ["Membre", "email", "Fonction", "Clinique", "Actions"];
+  const TABLE_HEAD = ["Nom", "Prénom", "email", "Fonction", "Actions"];
 
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
@@ -160,9 +160,21 @@ function AdminDashboard() {
   const [password, setPassword] = useState();
   const [selectedRole, setSelectedRole] = useState();
   const [displayed, setDisplayed] = useState();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(users?.length / itemsPerPage) || 1;
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleSelection = (event) => {
     setSelectedRole(event.target.value);
+  };
+
+  const getVisibleUsers = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return users?.slice(startIndex, endIndex);
   };
 
   const handleAddUser = async () => {
@@ -211,8 +223,6 @@ function AdminDashboard() {
     const tokens = localStorage.getItem("access-token");
     const roles = localStorage.getItem("role");
     const clinicDbs = localStorage.getItem("clinic-database");
-
-    console.log(UserIdDelete);
     axios
       .delete(`http://localhost:3002/users/${UserIdDelete}`, {
         headers: {
@@ -230,7 +240,33 @@ function AdminDashboard() {
         console.log(error);
       });
   };
-
+  const searchUser = (value) => {
+    if (value === "") {
+      window.location.reload();
+    }
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    axios
+      .get(`http://localhost:3002/users/search/${value}`, {
+        headers: {
+          "access-token": token,
+          "clinic-database": clinicDb,
+          role: role,
+          value: value,
+        },
+      })
+      .then((respone) => {
+        if (respone.data.length > 0) {
+          setUsers(respone.data);
+        } else {
+          setUsers([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
       <Sidebar>
@@ -265,11 +301,12 @@ function AdminDashboard() {
               <Input
                 label="Rechercher"
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                onChange={(e) => searchUser(e.target.value)}
               />
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-scroll px-0">
+        <CardBody className="overflow-auto px-0">
           <table className="mt-4 w-full min-w-max table-auto text-left">
             <thead>
               <tr>
@@ -290,7 +327,7 @@ function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {TABLE_ROWS.map(
+              {getVisibleUsers().map(
                 (
                   { id, first_name, last_name, email, role, clinicDbName },
                   index
@@ -310,7 +347,20 @@ function AdminDashboard() {
                               color="blue-gray"
                               className="font-normal"
                             >
-                              {first_name} {last_name}
+                              {last_name}
+                            </Typography>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={classes}>
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col">
+                            <Typography
+                              variant="small"
+                              color="blue-gray"
+                              className="font-normal"
+                            >
+                              {first_name}
                             </Typography>
                           </div>
                         </div>
@@ -327,20 +377,13 @@ function AdminDashboard() {
                         </div>
                       </td>
                       <td className={classes}>
-                        <div className="w-max">
-                          {role == "admin" && (
-                            <Chip
-                              variant="ghost"
-                              size="sm"
-                              value={role}
-                              color={"blue"}
-                            />
-                          )}
+                        <div className="w-24 text-center">
                           {role == "doctor" && (
                             <Chip
                               variant="ghost"
                               size="sm"
-                              value={role}
+                              strokeWidth={2}
+                              value="Médecin"
                               color={"green"}
                             />
                           )}
@@ -348,28 +391,20 @@ function AdminDashboard() {
                             <Chip
                               variant="ghost"
                               size="sm"
-                              value={role}
+                              value="Secrétaire"
                               color={"orange"}
                             />
                           )}
                         </div>
                       </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {clinicDb}
-                        </Typography>
-                      </td>
+
                       <td className={classes}>
                         <Tooltip content="Modifier utilisateur">
-                          <IconButton variant="text">
+                          <IconButton variant="text" className="ml-[-1rem]">
                             <PencilIcon className="h-4 w-4" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip content="Modifier utilisateur">
+                        <Tooltip content="Supprimer utilisateur">
                           <IconButton
                             onClick={() => handleDeleteUser(id)}
                             variant="text"
@@ -385,15 +420,25 @@ function AdminDashboard() {
             </tbody>
           </table>
         </CardBody>
-        <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+        <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4 absolute bottom-2 w-full ">
           <Typography variant="small" color="blue-gray" className="font-normal">
-            Page 1 de 10
+            Page {currentPage} sur {totalPages}
           </Typography>
           <div className="flex gap-2">
-            <Button variant="outlined" size="sm">
-              Précedant
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={currentPage === 1} // Disable previous button on first page
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              Précédent
             </Button>
-            <Button variant="outlined" size="sm">
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={currentPage === totalPages} // Disable next button on last page
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
               Suivant
             </Button>
           </div>

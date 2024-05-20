@@ -405,7 +405,6 @@ function SuperAdminDashboard() {
         </Card>
       </div>
 
-      {/* l popup li tiban fach katbghi t supprimer cabinet */}
       {idToDelete && (
         <div
           className="relative z-20"

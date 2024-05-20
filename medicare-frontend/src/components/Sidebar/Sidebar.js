@@ -78,6 +78,10 @@ export default function Sidebar({ children }) {
     setOpen(open === value ? 0 : value);
   };
   const navigate = useNavigate();
+  const Logout = () => {
+    localStorage.clear();
+    window.location.href = "/";
+  };
   return (
     <>
       <aside
@@ -122,12 +126,15 @@ export default function Sidebar({ children }) {
               </ListItemPrefix>
               {expanded ? "Settings" : ""}
             </ListItem>
-            <ListItem className={`${expanded ? "" : "w-11"} `}>
-              <ListItemPrefix>
-                <PowerIcon className="h-5 w-5" />
-              </ListItemPrefix>
-              {expanded ? "Deconnexion" : ""}
-            </ListItem>
+
+            <div onClick={() => Logout()} className="flex">
+              <ListItem className="">
+                <ListItemPrefix>
+                  <PowerIcon className="h-5 w-5" />
+                </ListItemPrefix>
+                {expanded ? "Deconnexion" : ""}
+              </ListItem>
+            </div>
           </List>
         </nav>
       </aside>

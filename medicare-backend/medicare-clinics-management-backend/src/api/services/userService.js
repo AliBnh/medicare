@@ -66,6 +66,27 @@ exports.getUserById = (id, clinicDbName) => {
   });
 };
 
+exports.searchUser = (search, clinicDbName) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const pool = getConnectionPool(clinicDbName);
+      pool.query(
+        "SELECT * FROM users WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR role LIKE ? ",
+        [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`],
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 exports.updateUserById = (
   id,
   first_name,

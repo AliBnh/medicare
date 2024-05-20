@@ -41,7 +41,18 @@ exports.getUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}
+};
+exports.searchUser = async (req, res) => {
+  const { term } = req.params;
+  const clinicDbName = req.headers["clinic-database"];
+  try {
+    const result = await userService.searchUser(term, clinicDbName);
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
@@ -61,7 +72,7 @@ exports.updateUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}
+};
 
 exports.deleteUser = async (req, res) => {
   const { id } = req.params;
@@ -73,4 +84,4 @@ exports.deleteUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}
+};
