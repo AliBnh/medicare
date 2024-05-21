@@ -50,6 +50,10 @@ function createClinicDB(code, adminEmail, adminPassword) {
             gender VARCHAR(1) NOT NULL,
             phone VARCHAR(255) NOT NULL,
             email VARCHAR(255),
+            cin VARCHAR(255),
+            weight INT,
+            height INT,
+            Insurance VARCHAR(255),
             doctor_id INT NOT NULL,
             FOREIGN KEY (doctor_id) REFERENCES Users(id)
     )`
@@ -72,7 +76,7 @@ function createClinicDB(code, adminEmail, adminPassword) {
     `CREATE TABLE Consultations (
             id INT PRIMARY KEY AUTO_INCREMENT,
             appointment_id INT NOT NULL,
-            diagnosis TEXT NOT NULL,
+            details TEXT NOT NULL,
             FOREIGN KEY (appointment_id) REFERENCES Appointments(id)
         )`
   );
@@ -83,7 +87,7 @@ function createClinicDB(code, adminEmail, adminPassword) {
             date DATE NOT NULL,
             method VARCHAR(255) NOT NULL,
             appointment_id INT NOT NULL,
-            status ENUM('paid', 'pending', 'etc.'),
+            status ENUM('paid', 'pending'),
             FOREIGN KEY (appointment_id) REFERENCES Appointments(id)
         )`
   );

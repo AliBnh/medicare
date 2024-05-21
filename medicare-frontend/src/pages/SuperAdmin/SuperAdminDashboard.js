@@ -325,7 +325,7 @@ function SuperAdminDashboard() {
                           <td className={classes}>
                             <div className="flex  justify-start">
                               <Button size="sm" variant="text" className=" ">
-                                <PencilIcon className="h-4 w-4 text-gray-600 ml-[-1rem] " />
+                                <PencilIcon className="h-4 w-4 text-gray-600 ml-[-1rem]" />
                               </Button>
                               <Button
                                 onClick={() => setIdToDelete(id)}
@@ -415,7 +415,7 @@ function SuperAdminDashboard() {
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
           <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div className=" flex min-h-full items-center justify-center p-4 text-center lg:items-center lg:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all 2xl:my-8 2xl:w-full 2xl:max-w-lg">
+              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-4/12">
                 <div className="bg-white px-4 pb-4 pt-5 lg:p-6 lg:pb-4">
                   <div className="2xl:flex justify-start 2xl:items-start">
                     <div className="mt-3 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 lg:mx-0 lg:h-10 lg:w-10">

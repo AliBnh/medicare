@@ -57,6 +57,7 @@ exports.searchUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
   const { first_name, last_name, email, role } = req.body;
+  console.log(req.body);
   const clinicDbName = req.headers["clinic-database"];
   try {
     const result = await userService.updateUserById(

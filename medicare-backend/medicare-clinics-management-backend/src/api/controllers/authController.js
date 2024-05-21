@@ -3,7 +3,6 @@ const getConnectionPool = require("../../config/connectionPool");
 
 exports.loginToClinic = async (req, res) => {
   const { code, password } = req.body;
-  console.log(req.body)
   try {
     const { accessToken, clinicDbName } = await authService.loginToClinic(
       code,

@@ -28,6 +28,23 @@ exports.getPatient = async (req, res) => {
   }
 };
 
+exports.searchPatient = async (req, res) => {
+  const clinicDbName = req.headers["clinic-database"];
+  const term = req.params.term;
+  const idDoc = req.headers["id"];
+  try {
+    const result = await patientsService.searchPatient(
+      clinicDbName,
+      term,
+      idDoc
+    );
+    res.send(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 exports.createPatient = async (req, res) => {
   const clinicDbName = req.headers["clinic-database"];
   const patient = req.body;

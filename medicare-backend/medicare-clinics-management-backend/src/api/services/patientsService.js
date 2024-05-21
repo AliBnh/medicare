@@ -45,12 +45,43 @@ exports.getPatient = (clinicDbName, id) => {
   });
 };
 
+exports.searchPatient = (clinicDbName, term, idDoc) => {
+  return new Promise((resolve, reject) => {
+    const pool = getConnectionPool(clinicDbName);
+    if (idDoc != null) {
+      pool.query(
+        "SELECT * FROM patients WHERE (first_name LIKE ? OR last_name LIKE ?  OR cin LIKE ?) AND doctor_id = ?",
+        [`%${term}%`, `%${term}%`, `%${term}%`, idDoc],
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+    } else {
+      pool.query(
+        "SELECT * FROM patients WHERE first_name LIKE ? OR last_name LIKE ?  OR cin LIKE ?",
+        [`%${term}%`, `%${term}%`, `%${term}%`],
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+    }
+  });
+};
+
 exports.createPatient = (clinicDbName, patient) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
     pool.query(
-      "INSERT INTO patients (first_name, last_name, email, phone, gender,date_of_birth, doctor_id) VALUES (?, ?, ?, ?, ?, ?,?)",
+      "INSERT INTO patients (first_name, last_name, email, phone, gender,date_of_birth,cin,weight,height,insurance, doctor_id) VALUES (?, ?, ?, ?, ?, ?,?,?,?,? ,?)",
       [
         patient.first_name,
         patient.last_name,
@@ -58,6 +89,10 @@ exports.createPatient = (clinicDbName, patient) => {
         patient.phone,
         patient.gender,
         patient.date_of_birth,
+        patient.cin,
+        patient.weight,
+        patient.height,
+        patient.insurance,
         patient.doctor_id,
       ],
       (err, result) => {
@@ -76,7 +111,7 @@ exports.updatePatient = (clinicDbName, id, patient) => {
     const pool = getConnectionPool(clinicDbName);
 
     pool.query(
-      "UPDATE patients SET first_name = ?, last_name = ?, email = ?, phone = ?, gender = ?,date_of_birth=?, doctor_id = ? WHERE id = ?",
+      "UPDATE patients SET first_name = ?, last_name = ?, email = ?, phone = ?, gender = ?,date_of_birth=?,cin=?,weight=?,height=?,insurance=?, doctor_id = ? WHERE id = ?",
       [
         patient.first_name,
         patient.last_name,
@@ -84,6 +119,10 @@ exports.updatePatient = (clinicDbName, id, patient) => {
         patient.phone,
         patient.gender,
         patient.date_of_birth,
+        patient.cin,
+        patient.weight,
+        patient.height,
+        patient.insurance,
         patient.doctor_id,
         id,
       ],

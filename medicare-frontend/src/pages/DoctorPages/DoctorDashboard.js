@@ -3,7 +3,15 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import { SidebarItem } from "../../components/Sidebar/Sidebar";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { WalletMinimal, Users, Hospital, Trash } from "lucide-react";
+import {
+  WalletMinimal,
+  Users,
+  Hospital,
+  Trash,
+  PlusCircle,
+  TrashIcon,
+  BadgeInfo,
+} from "lucide-react";
 import { useCountries } from "use-react-countries";
 import axios from "axios";
 
@@ -92,8 +100,9 @@ function DoctorDashboard() {
   ];
 
   const TABLE_HEAD = [
-    "Patient",
-    "email",
+    "Nom",
+    "Prénom",
+    "CIN",
     "Date de naissance",
     "Téléphone",
     "Actions",
@@ -136,6 +145,61 @@ function DoctorDashboard() {
   const [clinicDb, setClinicDb] = useState([]);
   const [docs, setDocs] = useState([]);
 
+  const [nom, setNom] = useState();
+  const [prenom, setPrenom] = useState();
+  const [cin, setCin] = useState();
+  const [phone, setPhone] = useState();
+  const [selectedGender, setSelectedGender] = useState();
+  const [height, setHeight] = useState();
+  const [weight, setWeight] = useState();
+  const [insurance, setInsurance] = useState();
+  const [email, setEmail] = useState();
+  const [date, setDate] = useState();
+
+  const [displayed, setDisplayed] = useState();
+  const handleSelection = (event) => {
+    setSelectedGender(event.target.value);
+  };
+  const handleCancel = () => {
+    setDisplayed(0);
+  };
+  const handleAddPatient = async () => {
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    const id = localStorage.getItem("id");
+    axios
+      .post(
+        "http://localhost:3002/patients",
+        {
+          last_name: nom,
+          first_name: prenom,
+          cin: cin,
+          phone: phone,
+          gender: selectedGender,
+          date_of_birth: date,
+          height: height,
+          weight: weight,
+          insurance: insurance,
+          email: email,
+          doctor_id: id,
+        },
+        {
+          headers: {
+            "access-token": token,
+            "clinic-database": clinicDb,
+            role: role,
+          },
+        }
+      )
+      .then((response) => {
+        handleCancel();
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   const cdb = localStorage.getItem("clinic-database");
   useEffect(() => {
     const token = localStorage.getItem("access-token");
@@ -151,15 +215,12 @@ function DoctorDashboard() {
           axios
             .get("http://localhost:3002/patients", {
               headers: {
-                // 'Authorization': Bearer ${token} ,
                 "access-token": token,
                 "clinic-database": cdb,
                 role: role,
               },
             })
             .then((response) => {
-              //console.log(response.data[0].role);
-
               if (response.data) {
                 setUsers(response.data);
                 const doctors = response.data.filter(
@@ -167,7 +228,6 @@ function DoctorDashboard() {
                 );
                 setDocs(doctors);
               }
-              console.log(users);
             })
             .catch((error) => {
               console.log(error);
@@ -194,6 +254,125 @@ function DoctorDashboard() {
   };
   const TABLE_ROWS = users;
 
+  const [displayedEdit, setDisplayedEdit] = useState();
+  const [editPatientId, setEditPatientId] = useState();
+  const [patientToEdit, setPatientToEdit] = useState([]);
+  const [nomEdit, setNomEdit] = useState();
+  const [prenomEdit, setPrenomEdit] = useState();
+  const [emailEdit, setEmailEdit] = useState();
+  const [cinEdit, setCinEdit] = useState();
+  const [phoneEdit, setPhoneEdit] = useState();
+  const [heightEdit, setHeightEdit] = useState();
+  const [weightEdit, setWeightEdit] = useState();
+  const [insuranceEdit, setInsuranceEdit] = useState();
+  const [dateEdit, setDateEdit] = useState();
+  const [selectedGenderEdit, setSelectedGenderEdit] = useState();
+
+  const handleGenderSelectionEdit = (event) => {
+    setSelectedGenderEdit(event.target.value);
+  };
+  const editPatient = (id) => {
+    setDisplayedEdit(1);
+    setEditPatientId(id);
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    axios
+      .get(`http://localhost:3002/patients/${id}`, {
+        headers: {
+          "access-token": token,
+          "clinic-database": clinicDb,
+          role: role,
+        },
+      })
+      .then((respone) => {
+        if (respone.data.length > 0) {
+          setPatientToEdit(respone.data[0]);
+          setNomEdit(respone.data[0].last_name);
+          setPrenomEdit(respone.data[0].first_name);
+          setEmailEdit(respone.data[0].email);
+          setCinEdit(respone.data[0].cin);
+          setPhoneEdit(respone.data[0].phone);
+          setHeightEdit(respone.data[0].height);
+          setWeightEdit(respone.data[0].weight);
+          setInsuranceEdit(respone.data[0].Insurance);
+          setDateEdit(respone.data[0].date_of_birth);
+          setSelectedGenderEdit(respone.data[0].gender);
+        } else {
+          setPatientToEdit([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  const handleEditPatient = async () => {
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    const id = localStorage.getItem("id");
+    axios
+      .put(
+        "http://localhost:3002/patients/" + editPatientId,
+        {
+          last_name: nomEdit,
+          first_name: prenomEdit,
+          email: emailEdit,
+          cin: cinEdit,
+          phone: phoneEdit,
+          height: heightEdit,
+          weight: weightEdit,
+          insurance: insuranceEdit,
+          date_of_birth: dateEdit,
+          gender: selectedGenderEdit,
+          doctor_id: id,
+        },
+        {
+          headers: {
+            "access-token": token,
+            "clinic-database": clinicDb,
+            role: role,
+          },
+        }
+      )
+      .then((response) => {
+        handleCancel();
+        window.location.reload();
+        setDisplayedEdit([0, null]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const searchPatient = (value) => {
+    if (value === "") {
+      window.location.reload();
+    }
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    const id = localStorage.getItem("id");
+    axios
+      .get(`http://localhost:3002/patients/search/${value}`, {
+        headers: {
+          "access-token": token,
+          "clinic-database": clinicDb,
+          role: role,
+          value: value,
+          id: id,
+        },
+      })
+      .then((respone) => {
+        if (respone.data.length > 0) {
+          setUsers(respone.data);
+        } else {
+          setUsers([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
       <Sidebar>
@@ -216,7 +395,7 @@ function DoctorDashboard() {
             </div>
             <div className="flex shrink-0 flex-col gap-2 2xl:flex-row">
               <Button
-                onClick={() => setIdToDelete(1)}
+                onClick={() => setDisplayed(1)}
                 className="flex items-center gap-3"
                 size="sm"
               >
@@ -230,6 +409,7 @@ function DoctorDashboard() {
               <Input
                 label="Rechercher"
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                onChange={(e) => searchPatient(e.target.value)}
               />
             </div>
           </div>
@@ -257,7 +437,7 @@ function DoctorDashboard() {
             <tbody>
               {getVisibleUsers().map(
                 (
-                  { id, first_name, last_name, email, date_of_birth, phone },
+                  { id, first_name, last_name, cin, date_of_birth, phone },
                   index
                 ) => {
                   const isLast = index === getVisibleUsers().length - 1;
@@ -275,7 +455,20 @@ function DoctorDashboard() {
                               color="blue-gray"
                               className="font-normal"
                             >
-                              {first_name} {last_name}
+                              {last_name}
+                            </Typography>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={classes}>
+                        <div className="flex items-center gap-3">
+                          <div className="flex flex-col">
+                            <Typography
+                              variant="small"
+                              color="blue-gray"
+                              className="font-normal"
+                            >
+                              {first_name}
                             </Typography>
                           </div>
                         </div>
@@ -287,7 +480,7 @@ function DoctorDashboard() {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {email}
+                            {cin}
                           </Typography>
                         </div>
                       </td>
@@ -317,12 +510,36 @@ function DoctorDashboard() {
                         </Typography>
                       </td>
                       <td className={classes}>
-                        <Button
-                          className=" bg-red-400 p-2"
-                          onClick={() => handleDeleteUser(id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        <Tooltip content="Prendre rendez-vous">
+                          <IconButton variant="text" className="ml-[-2.5rem]">
+                            <PlusCircle className="h-4 w-4 text-green-400" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip content="Informations">
+                          <IconButton variant="text" className="ml-[-0.5rem]">
+                            <BadgeInfo className="h-4 w-4 text-gray-700" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip content="Modifier patient">
+                          <IconButton
+                            variant="text"
+                            onClick={() => {
+                              editPatient(id);
+                            }}
+                            className="ml-[-0.5rem]"
+                          >
+                            <PencilIcon className="h-4 w-4 text-blue-700" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip content="Supprimer patient">
+                          <IconButton
+                            variant="text"
+                            className="ml-[-0.5rem]"
+                            onClick={() => handleDeleteUser(id)}
+                          >
+                            <TrashIcon className="h-4 w-4" color="red" />
+                          </IconButton>
+                        </Tooltip>
                       </td>
                     </tr>
                   );
@@ -474,6 +691,463 @@ function DoctorDashboard() {
                   </button>
                   <button
                     onClick={handleDeleteConfirmation}
+                    type="button"
+                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 2xl:mt-0 2xl:w-auto"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <>
+        {displayed ? (
+          <div
+            className="relative z-20"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+              <div className=" flex min-h-full items-center justify-center p-4 text-center lg:items-center lg:p-0">
+                <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all 2xl:my-8 2xl:w-full 2xl:max-w-lg">
+                  <div className="bg-white px-4 pb-4 pt-5 lg:p-6 lg:pb-4">
+                    <div className="2xl:flex justify-start 2xl:items-start">
+                      <form class="w-full max-w-2xl">
+                        <div class="flex  mx-3 ">
+                          <div class="w-full md:w-1/2 px-3 mb-8 ">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-first-name"
+                            >
+                              Prénom
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border  rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                              id="grid-first-name"
+                              type="text"
+                              placeholder="John"
+                              value={prenom}
+                              onChange={(e) => setPrenom(e.target.value)}
+                            />
+                          </div>
+                          <div class="w-full md:w-1/2 px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-last-name"
+                            >
+                              Nom
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-last-name"
+                              type="text"
+                              placeholder="Doe"
+                              value={nom}
+                              onChange={(e) => setNom(e.target.value)}
+                            />
+                          </div>
+                          <div class="w-full md:w-1/2 px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-last-name"
+                            >
+                              date de naissance
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-last-name"
+                              type="date"
+                              placeholder="SIX"
+                              value={date}
+                              onChange={(e) => setDate(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div class="flex mx-3 mb-8">
+                          <div class="w-full px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-password"
+                            >
+                              Cin
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-password"
+                              type="text"
+                              placeholder="AE123456"
+                              value={cin}
+                              onChange={(e) => setCin(e.target.value)}
+                            />
+                          </div>
+                          <div class="w-full px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-password"
+                            >
+                              Taille
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-password"
+                              type="number"
+                              placeholder="175"
+                              value={height}
+                              onChange={(e) => setHeight(e.target.value)}
+                            />
+                          </div>
+                          <div class="w-full px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-password"
+                            >
+                              Poids
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-password"
+                              type="number"
+                              placeholder="70"
+                              value={weight}
+                              onChange={(e) => setWeight(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div class="flex mx-3 mb-8">
+                          <div class="w-full px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-password"
+                            >
+                              Email
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-password"
+                              type="text"
+                              placeholder="exemple@gmail.com"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                            />
+                          </div>
+                          <div class="w-full px-3">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-password"
+                            >
+                              Assurance
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-password"
+                              type="text"
+                              placeholder="CNSS"
+                              value={insurance}
+                              onChange={(e) => setInsurance(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div class="flex mx-3 mb-2">
+                          <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-password"
+                            >
+                              Numéro de téléphone
+                            </label>
+                            <input
+                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-password"
+                              type="number"
+                              placeholder="06 12 34 56 78"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                            />
+                            {/* <p class="text-gray-600 text-xs italic">Make it as long and as crazy as you'd like</p> */}
+                          </div>
+                          <div class="w-4/6 px-3 mb-6 md:mb-0">
+                            <label
+                              class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                              for="grid-state"
+                            >
+                              Genre
+                            </label>
+                            <div class="relative">
+                              <select
+                                name="roler"
+                                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                id="grid-state"
+                                value={selectedGender}
+                                onChange={handleSelection}
+                              >
+                                <option value="">Choisir</option>
+                                <option value="M">M</option>
+                                <option value="F">F</option>
+                              </select>
+                              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg
+                                  class="fill-current h-4 w-4"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-3 2xl:flex 2xl:flex-row-reverse 2xl:px-6">
+                    <button
+                      onClick={() => {
+                        handleAddPatient();
+                      }}
+                      type="button"
+                      className="inline-flex w-full justify-center rounded-md bg-super-admin-submit px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-900 2xl:ml-3 2xl:w-auto"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDisplayed(0);
+                      }}
+                      type="button"
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 2xl:mt-0 2xl:w-auto"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
+      </>
+      {displayedEdit && (
+        <div
+          className="relative z-20"
+          aria-labelledby="modal-title"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div className=" flex min-h-full items-center justify-center p-4 text-center lg:items-center lg:p-0">
+              <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all 2xl:my-8 2xl:w-full 2xl:max-w-lg">
+                <div className="bg-white px-4 pb-4 pt-5 lg:p-6 lg:pb-4">
+                  <div className="2xl:flex justify-start 2xl:items-start">
+                    <form class="w-full max-w-2xl">
+                      <div class="flex  mx-3 ">
+                        <div class="w-full md:w-1/2 px-3 mb-8 ">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-first-name"
+                          >
+                            Prénom
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border  rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                            id="grid-first-name"
+                            type="text"
+                            placeholder="John"
+                            value={prenomEdit}
+                            onChange={(e) => setPrenomEdit(e.target.value)}
+                          />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-last-name"
+                          >
+                            Nom
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-last-name"
+                            type="text"
+                            placeholder="Doe"
+                            value={nomEdit}
+                            onChange={(e) => setNomEdit(e.target.value)}
+                          />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-last-name"
+                          >
+                            date de naissance
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-last-name"
+                            type="date"
+                            placeholder="SIX"
+                            value={dateEdit}
+                            onChange={(e) => setDateEdit(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div class="flex mx-3 mb-8">
+                        <div class="w-full px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Cin
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-password"
+                            type="text"
+                            placeholder="AE123456"
+                            value={cinEdit}
+                            onChange={(e) => setCinEdit(e.target.value)}
+                          />
+                        </div>
+                        <div class="w-full px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Taille
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-password"
+                            type="number"
+                            placeholder="175"
+                            value={heightEdit}
+                            onChange={(e) => setHeightEdit(e.target.value)}
+                          />
+                        </div>
+                        <div class="w-full px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Poids
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-password"
+                            type="number"
+                            placeholder="70"
+                            value={weightEdit}
+                            onChange={(e) => setWeightEdit(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div class="flex mx-3 mb-8">
+                        <div class="w-full px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Email
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-password"
+                            type="text"
+                            placeholder="exemple@gmail.com"
+                            value={emailEdit}
+                            onChange={(e) => setEmailEdit(e.target.value)}
+                          />
+                        </div>
+                        <div class="w-full px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Assurance
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-password"
+                            type="text"
+                            placeholder="CNSS"
+                            value={insuranceEdit}
+                            onChange={(e) => setInsuranceEdit(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div class="flex mx-3 mb-2">
+                        <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Numéro de téléphone
+                          </label>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-password"
+                            type="number"
+                            placeholder="06 12 34 56 78"
+                            value={phoneEdit}
+                            onChange={(e) => setPhoneEdit(e.target.value)}
+                          />
+                          {/* <p class="text-gray-600 text-xs italic">Make it as long and as crazy as you'd like</p> */}
+                        </div>
+                        <div class="w-4/6 px-3 mb-6 md:mb-0">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-state"
+                          >
+                            Genre
+                          </label>
+                          <div class="relative">
+                            <select
+                              name="roler"
+                              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-state"
+                              value={selectedGenderEdit}
+                              onChange={handleGenderSelectionEdit}
+                            >
+                              <option value="">Choisir</option>
+                              <option value="M">M</option>
+                              <option value="F">F</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                              <svg
+                                class="fill-current h-4 w-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 2xl:flex 2xl:flex-row-reverse 2xl:px-6">
+                  <button
+                    onClick={() => {
+                      handleEditPatient();
+                    }}
+                    type="button"
+                    className="inline-flex w-full justify-center rounded-md bg-super-admin-submit px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-900 2xl:ml-3 2xl:w-auto"
+                  >
+                    Enregistrer
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDisplayedEdit(null);
+                      setEditPatientId(null);
+                    }}
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 2xl:mt-0 2xl:w-auto"
                   >
