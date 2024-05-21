@@ -1,33 +1,32 @@
 const getConnectionPool = require("../../config/connectionPool");
-
 exports.getPatients = (clinicDbName, role, id) => {
   return new Promise((resolve, reject) => {
-    if (role === "admin" || role === "secretary") {
-      const pool = getConnectionPool(clinicDbName);
-      pool.query("SELECT * FROM patients", (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
-      });
-    } else if (role === "doctor") {
-      const pool = getConnectionPool(clinicDbName);
+    const pool = getConnectionPool(clinicDbName);
 
-      pool.query(
-        "SELECT * FROM patients WHERE doctor_id = ?",
-        [id],
-        (err, result) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(result);
-          }
-        }
-      );
+    let query = `
+      SELECT p.*, 
+             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+      FROM patients p
+      JOIN users d ON p.doctor_id = d.id`;
+
+    let queryParams = [];
+
+    if (role === "admin" || role === "secretary") {
+      // No additional filter for admin or secretary
+    } else if (role === "doctor") {
+      query += " WHERE p.doctor_id = ?";
+      queryParams.push(id);
     } else {
-      reject("Unauthorized");
+      return reject("Unauthorized");
     }
+
+    pool.query(query, queryParams, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
   });
 };
 

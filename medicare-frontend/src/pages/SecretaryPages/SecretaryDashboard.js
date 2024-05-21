@@ -90,7 +90,7 @@ function SecretaryDashboard() {
     "Nom",
     "Prénom",
     "CIN",
-    "Date de naissance",
+    "Docteur traitant",
     "Téléphone",
     "Actions",
   ];
@@ -200,6 +200,7 @@ function SecretaryDashboard() {
   const [selectedGender, setSelectedGender] = useState();
   const [date, setDate] = useState();
   const [docId, setDocId] = useState();
+  const [doctor_name, setDoctor_name] = useState();
   const [height, setHeight] = useState();
   const [weight, setWeight] = useState();
   const [insurance, setInsurance] = useState();
@@ -284,6 +285,7 @@ function SecretaryDashboard() {
           insurance: insurance,
           email: email,
           doctor_id: docId,
+          doctor_name: doctor_name,
         },
         {
           headers: {
@@ -537,7 +539,7 @@ function SecretaryDashboard() {
             <tbody>
               {getVisiblePatients().map(
                 (
-                  { id, first_name, last_name, cin, date_of_birth, phone },
+                  { id, first_name, last_name, cin, doctor_name, phone },
                   index
                 ) => {
                   const isLast = index === TABLE_ROWS.length - 1;
@@ -591,11 +593,7 @@ function SecretaryDashboard() {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {new Intl.DateTimeFormat("en-EN", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            }).format(new Date(date_of_birth))}
+                            {doctor_name}
                           </Typography>
                         </div>
                       </td>
