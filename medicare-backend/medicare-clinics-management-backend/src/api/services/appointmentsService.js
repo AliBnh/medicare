@@ -35,12 +35,12 @@ async function getAppointments(clinicDbName, role, id) {
     const pool = getConnectionPool(clinicDbName);
 
     let query = `
-    SELECT a.*, 
-           CONCAT(d.first_name, ' ', d.last_name) AS doctor_name, 
-           CONCAT(p.first_name, ' ', p.last_name) AS patient_name
-    FROM appointments a
-    JOIN users d ON a.doctor_id = d.id
-    JOIN patients p ON a.patient_id = p.id`;
+      SELECT a.*, 
+             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name, 
+             CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+      FROM appointments a
+      JOIN users d ON a.doctor_id = d.id
+      JOIN patients p ON a.patient_id = p.id`;
 
     let queryParams = [];
 
@@ -52,6 +52,9 @@ async function getAppointments(clinicDbName, role, id) {
     } else {
       return reject("Unauthorized");
     }
+
+    query +=
+      " ORDER BY STR_TO_DATE(CONCAT(a.date, ' ', a.time), '%Y-%m-%d %H:%i:%s') DESC ";
 
     pool.query(query, queryParams, (err, result) => {
       if (err) {

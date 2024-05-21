@@ -15,7 +15,13 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import { SidebarItem } from "../../components/Sidebar/Sidebar";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { WalletMinimal, Users, Hospital, TrashIcon } from "lucide-react";
+import {
+  WalletMinimal,
+  Users,
+  Hospital,
+  TrashIcon,
+  ScanEye,
+} from "lucide-react";
 import { useCountries } from "use-react-countries";
 import axios from "axios";
 
@@ -117,6 +123,19 @@ function SecretaryRDV() {
 
   const handleCancel = () => {
     setDisplayed(0);
+  };
+  const handleDeleteAppointment = (id) => {
+    const tokens = localStorage.getItem("access-token");
+    const roles = localStorage.getItem("role");
+    const clinicDbs = localStorage.getItem("clinic-database");
+    axios.delete(`http://localhost:3002/appointments/${id}`, {
+      headers: {
+        "access-token": tokens,
+        "clinic-database": clinicDbs,
+        role: roles,
+      },
+    });
+    window.location.reload();
   };
 
   const cdb = localStorage.getItem("clinic-database");
@@ -497,16 +516,27 @@ function SecretaryRDV() {
                         </Typography>
                       </td>
                       <td className={classes}>
-                        <Button
-                          onClick={() => {
-                            navigate(
-                              `/secretaire/rdv/consultation/${patient_id}`
-                            );
-                          }}
-                          className="bg-blue-400 p-2"
-                        >
-                          Infos
-                        </Button>
+                        <Tooltip content="Consulter">
+                          <IconButton variant="text" className="ml-[-0.5rem]">
+                            <ScanEye
+                              className="h-4 w-4 text-blue-700"
+                              onClick={() => {
+                                navigate(
+                                  `/secretaire/rdv/consultation/${patient_id}`
+                                );
+                              }}
+                            />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip content="Supprimer RDV">
+                          <IconButton
+                            variant="text"
+                            className="ml-[-0.5rem]"
+                            onClick={() => handleDeleteAppointment(id)}
+                          >
+                            <TrashIcon className="h-4 w-4" color="red" />
+                          </IconButton>
+                        </Tooltip>
                       </td>
                     </tr>
                   );
