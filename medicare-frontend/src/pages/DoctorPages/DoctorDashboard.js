@@ -511,15 +511,15 @@ function DoctorDashboard() {
                       </td>
                       <td className={classes}>
                         <Tooltip content="Prendre rendez-vous">
-                          <IconButton variant="text" className="ml-[-2.5rem]">
+                          <IconButton variant="text" className="ml-[-1.5rem]">
                             <PlusCircle className="h-4 w-4 text-green-400" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip content="Informations">
+                        {/* <Tooltip content="Informations">
                           <IconButton variant="text" className="ml-[-0.5rem]">
                             <BadgeInfo className="h-4 w-4 text-gray-700" />
                           </IconButton>
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip content="Modifier patient">
                           <IconButton
                             variant="text"

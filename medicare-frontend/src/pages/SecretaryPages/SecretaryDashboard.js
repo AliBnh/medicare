@@ -373,6 +373,7 @@ function SecretaryDashboard() {
   const handleGenderSelectionEdit = (event) => {
     setSelectedGenderEdit(event.target.value);
   };
+
   const editPatient = (id) => {
     setDisplayedEdit(1);
     setEditPatientId(id);
@@ -446,6 +447,7 @@ function SecretaryDashboard() {
         console.log(error);
       });
   };
+
   const searchPatient = (value) => {
     if (value === "") {
       window.location.reload();
@@ -614,16 +616,19 @@ function SecretaryDashboard() {
                               handleBtnAddRdv(id, last_name, first_name)
                             }
                             variant="text"
-                            className="ml-[-2rem]"
+                            className="ml-[-1.5rem]"
                           >
                             <PlusCircle className="h-4 w-4 text-green-400" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip content="Informations">
+                        {/* <Tooltip content="Informations">
                           <IconButton variant="text" className="ml-[-0.5rem]">
-                            <BadgeInfo className="h-4 w-4 text-gray-700" />
+                            <BadgeInfo
+                              className="h-4 w-4 text-gray-700"
+                              onClick={() => handleGetInfoPatient(id)}
+                            />
                           </IconButton>
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip content="Modifier patient">
                           <IconButton
                             variant="text"
