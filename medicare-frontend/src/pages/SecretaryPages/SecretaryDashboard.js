@@ -270,6 +270,7 @@ function SecretaryDashboard() {
     const token = localStorage.getItem("access-token");
     const role = localStorage.getItem("role");
     const clinicDb = localStorage.getItem("clinic-database");
+    console.log(date);
     axios
       .post(
         "http://localhost:3002/patients",
@@ -902,7 +903,7 @@ function SecretaryDashboard() {
                             type="date"
                             placeholder="SIX"
                             value={dateEdit}
-                            onChange={(e) => setDateEdit(e.target.value)}
+                            onChange={(e) => setDate(e.target.value)}
                           />
                         </div>
                       </div>

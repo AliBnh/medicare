@@ -12,7 +12,6 @@ exports.getPatients = (clinicDbName, role, id) => {
     let queryParams = [];
 
     if (role === "admin" || role === "secretary") {
-      // No additional filter for admin or secretary
     } else if (role === "doctor") {
       query += " WHERE p.doctor_id = ?";
       queryParams.push(id);
@@ -34,7 +33,14 @@ exports.getPatient = (clinicDbName, id) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
-    pool.query("SELECT * FROM patients WHERE id = ?", [id], (err, result) => {
+    const query = `
+      SELECT p.*, 
+             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+      FROM patients p
+      JOIN users d ON p.doctor_id = d.id
+      WHERE p.id = ?`;
+
+    pool.query(query, [id], (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -47,31 +53,28 @@ exports.getPatient = (clinicDbName, id) => {
 exports.searchPatient = (clinicDbName, term, idDoc) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
+
+    let query = `
+      SELECT p.*, 
+             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+      FROM patients p
+      JOIN users d ON p.doctor_id = d.id
+      WHERE (p.first_name LIKE ? OR p.last_name LIKE ? OR p.cin LIKE ?)`;
+
+    let queryParams = [`%${term}%`, `%${term}%`, `%${term}%`];
+
     if (idDoc != null) {
-      pool.query(
-        "SELECT * FROM patients WHERE (first_name LIKE ? OR last_name LIKE ?  OR cin LIKE ?) AND doctor_id = ?",
-        [`%${term}%`, `%${term}%`, `%${term}%`, idDoc],
-        (err, result) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(result);
-          }
-        }
-      );
-    } else {
-      pool.query(
-        "SELECT * FROM patients WHERE first_name LIKE ? OR last_name LIKE ?  OR cin LIKE ?",
-        [`%${term}%`, `%${term}%`, `%${term}%`],
-        (err, result) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(result);
-          }
-        }
-      );
+      query += " AND p.doctor_id = ?";
+      queryParams.push(idDoc);
     }
+
+    pool.query(query, queryParams, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
   });
 };
 
