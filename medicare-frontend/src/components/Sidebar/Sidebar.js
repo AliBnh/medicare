@@ -1,4 +1,9 @@
-import { ChevronFirst, ChevronLast, MoreVertical } from "lucide-react";
+import {
+  ChevronFirst,
+  ChevronLast,
+  ClockIcon,
+  MoreVertical,
+} from "lucide-react";
 import React, { useEffect } from "react";
 import logoImage from "./medicare_logo.png";
 import {
@@ -31,14 +36,12 @@ import {
   Drawer,
 } from "@material-tailwind/react";
 import {
-  PresentationChartBarIcon,
   ShoppingBagIcon,
   UserCircleIcon,
   Cog6ToothIcon,
   InboxIcon,
   PowerIcon,
   PencilIcon,
-  UserPlusIcon,
   BanknotesIcon,
   CreditCardIcon,
   LockClosedIcon,
@@ -51,6 +54,10 @@ import {
   XMarkIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon,
+  UserPlusIcon,
+  CurrencyEuroIcon,
+  UsersIcon,
+  PresentationChartBarIcon,
 } from "@heroicons/react/24/outline";
 import {
   LayoutDashboard,
@@ -108,7 +115,7 @@ export default function Sidebar({ children }) {
         } transition-all sm:h-20 sm:fixed sm:w-screen sm:top-0 sidebar-size:w-14`}
       >
         <nav
-          className={`h-full flex flex-col bg-white border-r shadow-sm  sm:flex-row`}
+          className={`h-full flex flex-col bg-white border-r shadow-sm  sm:flex-row `}
         >
           <div className="p-4 pb-2 flex justify-between items-center sm:hidden">
             <img
@@ -126,19 +133,19 @@ export default function Sidebar({ children }) {
           </div>
 
           <List className="sm:flex-row mt-12">
-            <div onClick={() => headToDashboard()} className="flex">
+            <div onClick={() => headToDashboard()} className="flex ">
               <ListItem className={`${expanded ? "" : "w-11"} `}>
                 <ListItemPrefix>
-                  <InboxIcon className="h-5 w-5" />
+                  <PresentationChartBarIcon className="h-5 w-5 font-semibold" />
                 </ListItemPrefix>
                 {expanded ? "Dashboard" : ""}
               </ListItem>
             </div>
             {role === "admin" && (
-              <div onClick={() => headToDashboard()} className="flex">
-                <ListItem className={`${expanded ? "" : "w-11"} `}>
+              <div onClick={() => headToDashboard()} className="flex ">
+                <ListItem className={`${expanded ? "" : "w-11 "} `}>
                   <ListItemPrefix>
-                    <InboxIcon className="h-5 w-5" />
+                    <UserPlusIcon className="h-5 w-5" />
                   </ListItemPrefix>
                   {expanded ? "Utilisateurs" : ""}
                 </ListItem>
@@ -147,7 +154,7 @@ export default function Sidebar({ children }) {
             <div onClick={() => headToPatients()} className="flex">
               <ListItem className={`${expanded ? "" : "w-11"} `}>
                 <ListItemPrefix>
-                  <InboxIcon className="h-5 w-5" />
+                  <UsersIcon className="h-5 w-5" />
                 </ListItemPrefix>
                 {expanded ? "Patients" : ""}
               </ListItem>
@@ -155,7 +162,7 @@ export default function Sidebar({ children }) {
             <div onClick={() => headToAppointments()} className="flex">
               <ListItem className={`${expanded ? "" : "w-11"} `}>
                 <ListItemPrefix>
-                  <UserCircleIcon className="h-5 w-5" />
+                  <ClockIcon className="h-5 w-5" />
                 </ListItemPrefix>
                 {expanded ? "Rendez-vous" : ""}
               </ListItem>
@@ -163,7 +170,7 @@ export default function Sidebar({ children }) {
             <div onClick={() => headToPayments()} className="flex">
               <ListItem className={`${expanded ? "" : "w-11"} `}>
                 <ListItemPrefix>
-                  <Cog6ToothIcon className="h-5 w-5" />
+                  <CurrencyEuroIcon className="h-5 w-5" />
                 </ListItemPrefix>
                 {expanded ? "Paiements" : ""}
               </ListItem>
