@@ -87,7 +87,7 @@ import {
   Settings,
 } from "lucide-react";
 
-function SecretaryRDV() {
+function DoctorRDV() {
   const navigate = useNavigate();
 
   const [open, setOpen] = React.useState(0);
@@ -98,7 +98,6 @@ function SecretaryRDV() {
 
   const TABLE_HEAD = [
     "Patient",
-    "Docteur",
     "Type de rdv",
     "Date",
     "Heure",
@@ -292,7 +291,7 @@ function SecretaryRDV() {
         .then((response) => {
           console.log(response);
           handleCancel();
-          navigate("/secretaire/dashboard");
+          navigate("/doctor/dashboard");
         })
         .catch((error) => {
           console.log(error);
@@ -327,8 +326,9 @@ function SecretaryRDV() {
           }
         )
         .then((response) => {
+          console.log(response);
           handleCancel();
-          navigate("/rdv");
+          navigate("/doctor/rdv");
         })
         .catch((error) => {
           console.log(error);
@@ -457,17 +457,6 @@ function SecretaryRDV() {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {doctor_name}
-                          </Typography>
-                        </div>
-                      </td>
-                      <td className={classes}>
-                        <div className="flex flex-col">
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
                             {type}
                           </Typography>
                         </div>
@@ -515,6 +504,18 @@ function SecretaryRDV() {
                         </Typography>
                       </td>
                       <td className={classes}>
+                        <Tooltip content="Consulter">
+                          <IconButton variant="text" className="ml-[-0.5rem]">
+                            <ScanEye
+                              className="h-4 w-4 text-blue-700"
+                              onClick={() => {
+                                navigate(
+                                  `/doctor/rdv/consultation/${patient_id}`
+                                );
+                              }}
+                            />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip content="Supprimer RDV">
                           <IconButton
                             variant="text"
@@ -712,4 +713,4 @@ function SecretaryRDV() {
   );
 }
 
-export default SecretaryRDV;
+export default DoctorRDV;

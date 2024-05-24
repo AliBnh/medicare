@@ -80,7 +80,7 @@ function SecretaryLoginPage() {
         localStorage.setItem("role", response.data.role);
         localStorage.setItem("id", response.data.id);
         localStorage.setItem("access-token", response.data.accessToken);
-        navigate("/secretaire/dashboard");
+        navigate("/patients");
       })
       .catch(function (error) {
         console.log(error);

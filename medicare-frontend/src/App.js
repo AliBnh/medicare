@@ -10,20 +10,11 @@ import SecretaryLoginPage from "./pages/SecretaryPages/SecretaryLoginPage";
 import ChoicePage from "./pages/ChoicePages/ChoicePage";
 import AdminDashboard from "./pages/AdminPages/AdminDashboard";
 import DoctorLoginPage from "./pages/DoctorPages/DoctorLoginPage";
-import AdminRDV from "./pages/AdminPages/AdminRDV";
-import AdminPatients from "./pages/AdminPages/AdminPatients";
-import SecretaryDashboard from "./pages/SecretaryPages/SecretaryDashboard";
-import DoctorDashboard from "./pages/DoctorPages/DoctorDashboard";
+import SecretaryPatients from "./pages/SecretaryPages/SecretaryPatients";
+import DoctorPatients from "./pages/DoctorPages/DoctorPatients";
 import SecretaryRDV from "./pages/SecretaryPages/SecretaryRDV";
-import SecretaryConsultation from "./pages/SecretaryPages/SecretaryConsultation";
-
-//Providers
-//import { AdminProvider } from "../Contexts/AdminContext";
-
-//Administrateur pages
-//import Homepage from "../pages/Homepage/Homepage";
-
-
+import DoctorConsultation from "./pages/DoctorPages/DoctorConsultation";
+import DoctorRDV from "./pages/DoctorPages/DoctorRDV";
 
 function App() {
   useEffect(() => {
@@ -34,39 +25,38 @@ function App() {
 
   return (
     <Router>
-        <Routes>
-            <Route path="/" element={<CabinetLoginPage />}></Route>
-            <Route path="/cabinet/type-utilisateur" element={<ChoicePage />}></Route>
-            <Route path="/cabinet/login" element={<CabinetLoginPage />}></Route>
-            <Route path="/admin/login" element={<AdminLoginPage />}></Route>
-            <Route path="/doctor/login" element={<DoctorLoginPage />}></Route>
-            <Route path="/secretaire/login" element={<SecretaryLoginPage />}></Route>
-            <Route path="/secretaire/dashboard" element={<SecretaryDashboard />}></Route>
-            <Route path="/superAdmin/login" element={<SuperAdminLogin />}></Route>
-            <Route path="/superAdmin/dashboard" element={<SuperAdminDashboard />}></Route>
-            <Route path="/admin/dashboard" element={<AdminDashboard />}></Route>
-            <Route path="/admin/patients" element={<AdminPatients />}></Route>
-            <Route path="/admin/rdv" element={<AdminRDV />}></Route>
-            <Route path="/superAdmin/ajouterCabinet" element={<SuperAdminAddCabinet />}></Route>
-            <Route path="/doctor/dashboard" element={<DoctorDashboard />}></Route>
-            <Route path="/secretaire/rdv" element={<SecretaryRDV />}></Route>
-            <Route path="/secretaire/rdv/consultation/:rdvId" element={<SecretaryConsultation />}></Route>
-        </Routes>
-      {/* <AdminProvider>
-        <Routes>
-          
-        </Routes>
-      </AdminProvider>
-      <EncadrantProvider>
-        <Routes>
-          
-        </Routes>
-      </EncadrantProvider>
-      <StagiaireProvider>
-        <Routes>
-          
-        </Routes>
-      </StagiaireProvider> */}
+      <Routes>
+        <Route path="/" element={<CabinetLoginPage />}></Route>
+        <Route
+          path="/cabinet/type-utilisateur"
+          element={<ChoicePage />}
+        ></Route>
+        <Route path="/cabinet/login" element={<CabinetLoginPage />}></Route>
+        <Route path="/admin/login" element={<AdminLoginPage />}></Route>
+        <Route path="/doctor/login" element={<DoctorLoginPage />}></Route>
+        <Route
+          path="/secretaire/login"
+          element={<SecretaryLoginPage />}
+        ></Route>
+        <Route path="/patients" element={<SecretaryPatients />}></Route>
+        <Route path="/superAdmin/login" element={<SuperAdminLogin />}></Route>
+        <Route
+          path="/superAdmin/dashboard"
+          element={<SuperAdminDashboard />}
+        ></Route>
+        <Route path="/admin/dashboard" element={<AdminDashboard />}></Route>
+        <Route
+          path="/superAdmin/ajouterCabinet"
+          element={<SuperAdminAddCabinet />}
+        ></Route>
+        <Route path="/doctor/patients" element={<DoctorPatients />}></Route>
+        <Route path="/doctor/rdv" element={<DoctorRDV />}></Route>
+        <Route path="/rdv" element={<SecretaryRDV />}></Route>
+        <Route
+          path="/doctor/rdv/consultation/:rdvId"
+          element={<DoctorConsultation />}
+        ></Route>
+      </Routes>
     </Router>
   );
 }

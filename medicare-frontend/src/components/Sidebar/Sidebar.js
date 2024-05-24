@@ -82,6 +82,24 @@ export default function Sidebar({ children }) {
     localStorage.clear();
     window.location.href = "/";
   };
+  const role = localStorage.getItem("role");
+  const headToDashboard = () => {
+    if (role === "admin") navigate("/admin/dashboard");
+    else if (role === "doctor") navigate("/doctor/patients");
+    else if (role === "secretary") navigate("/patients");
+  };
+  const headToAppointments = () => {
+    if (role === "doctor") navigate("/doctor/rdv");
+    else if (role === "secretary" || role == "admin") navigate("/rdv");
+  };
+  const headToPatients = () => {
+    if (role === "doctor") navigate("/doctor/patients");
+    else if (role === "secretary" || role == "admin") navigate("/patients");
+  };
+  const headToPayments = () => {
+    navigate("/payments");
+  };
+
   return (
     <>
       <aside
@@ -107,26 +125,60 @@ export default function Sidebar({ children }) {
             </button>
           </div>
 
-          <List className="sm:flex-row">
-            <ListItem className={`${expanded ? "" : "w-11"} `}>
-              <ListItemPrefix>
-                <InboxIcon className="h-5 w-5" />
-              </ListItemPrefix>
-              {expanded ? "Inbox" : ""}
-            </ListItem>
-            <ListItem className={`${expanded ? "" : "w-11"} `}>
-              <ListItemPrefix>
-                <UserCircleIcon className="h-5 w-5" />
-              </ListItemPrefix>
-              {expanded ? "Profile" : ""}
-            </ListItem>
-            <ListItem className={`${expanded ? "" : "w-11"} `}>
-              <ListItemPrefix>
-                <Cog6ToothIcon className="h-5 w-5" />
-              </ListItemPrefix>
-              {expanded ? "Settings" : ""}
-            </ListItem>
+          <List className="sm:flex-row mt-12">
+            <div onClick={() => headToDashboard()} className="flex">
+              <ListItem className={`${expanded ? "" : "w-11"} `}>
+                <ListItemPrefix>
+                  <InboxIcon className="h-5 w-5" />
+                </ListItemPrefix>
+                {expanded ? "Dashboard" : ""}
+              </ListItem>
+            </div>
+            {role === "admin" && (
+              <div onClick={() => headToDashboard()} className="flex">
+                <ListItem className={`${expanded ? "" : "w-11"} `}>
+                  <ListItemPrefix>
+                    <InboxIcon className="h-5 w-5" />
+                  </ListItemPrefix>
+                  {expanded ? "Utilisateurs" : ""}
+                </ListItem>
+              </div>
+            )}
+            <div onClick={() => headToPatients()} className="flex">
+              <ListItem className={`${expanded ? "" : "w-11"} `}>
+                <ListItemPrefix>
+                  <InboxIcon className="h-5 w-5" />
+                </ListItemPrefix>
+                {expanded ? "Patients" : ""}
+              </ListItem>
+            </div>
+            <div onClick={() => headToAppointments()} className="flex">
+              <ListItem className={`${expanded ? "" : "w-11"} `}>
+                <ListItemPrefix>
+                  <UserCircleIcon className="h-5 w-5" />
+                </ListItemPrefix>
+                {expanded ? "Rendez-vous" : ""}
+              </ListItem>
+            </div>
+            <div onClick={() => headToPayments()} className="flex">
+              <ListItem className={`${expanded ? "" : "w-11"} `}>
+                <ListItemPrefix>
+                  <Cog6ToothIcon className="h-5 w-5" />
+                </ListItemPrefix>
+                {expanded ? "Paiements" : ""}
+              </ListItem>
+            </div>
 
+            {/* {role === "doctor" && (
+              <div onClick={() => headToDashboard()} className="flex">
+                <ListItem className={`${expanded ? "" : "w-11"} `}>
+                  <ListItemPrefix>
+                    <InboxIcon className="h-5 w-5" />
+                  </ListItemPrefix>
+                  {expanded ? "Patients" : ""}
+                </ListItem>
+              </div>
+            )} */}
             <div onClick={() => Logout()} className="flex">
               <ListItem className="">
                 <ListItemPrefix>
@@ -178,15 +230,3 @@ export function SidebarItem({ icon, text, active, alert }) {
     </li>
   );
 }
-
-// <Sidebar>
-//   <SidebarItem icon={<Home size={20} />} text="Home" alert />
-//   <SidebarItem icon={<LayoutDashboard size={20} />} text="Dashboard" active />
-//   <SidebarItem icon={<StickyNote size={20} />} text="Projects" alert />
-//   <SidebarItem icon={<Calendar size={20} />} text="Calendar" />
-//   <SidebarItem icon={<Layers size={20} />} text="Tasks" />
-//   <SidebarItem icon={<Flag size={20} />} text="Reporting" />
-//   <hr className="my-3" />
-//   <SidebarItem icon={<Settings size={20} />} text="Settings" />
-//   <SidebarItem icon={<LifeBuoy size={20} />} text="Help" />
-// </Sidebar>
