@@ -19,6 +19,27 @@ async function getAppointments(req, res) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
+async function searchAppointments(req, res) {
+  const clinicDbName = req.headers["clinic-database"];
+  const role = req.headers["role"];
+  const accessToken = req.headers["access-token"];
+  const decoded = verify(accessToken, "jwtsecretplschange");
+  const id = decoded.id;
+  const search = req.params.term;
+  try {
+    const result = await patientsService.searchAppointments(
+      clinicDbName,
+      role,
+      id,
+      search
+    );
+    res.send(result);
+    console.log(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
 
 async function getAppointment(req, res) {
   const clinicDbName = req.headers["clinic-database"];
@@ -82,4 +103,5 @@ module.exports = {
   createAppointment,
   updateAppointment,
   deleteAppointment,
+  searchAppointments,
 };

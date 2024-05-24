@@ -264,44 +264,6 @@ function SecretaryRDV() {
     }
   };
 
-  const handleAddPatient = async () => {
-    const token = localStorage.getItem("access-token");
-    const role = localStorage.getItem("role");
-    const clinicDb = localStorage.getItem("clinic-database");
-    if (token) {
-      axios
-        .post(
-          "http://localhost:3002/patients",
-          {
-            last_name: nom,
-            first_name: prenom,
-            email: email,
-            phone: phone,
-            gender: selectedGender,
-            date_of_birth: date,
-            doctor_id: docId,
-          },
-          {
-            headers: {
-              "access-token": token,
-              "clinic-database": clinicDb,
-              role: role,
-            },
-          }
-        )
-        .then((response) => {
-          console.log(response);
-          handleCancel();
-          navigate("/secretaire/dashboard");
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else {
-      console.log("Token d'authentification non disponible.");
-    }
-  };
-
   const handleAddRDV = async () => {
     const token = localStorage.getItem("access-token");
     const role = localStorage.getItem("role");
@@ -373,7 +335,33 @@ function SecretaryRDV() {
 
     fetchRDVs();
   }, []);
-
+  const searchRDV = (value) => {
+    if (value === "") {
+      window.location.reload();
+    }
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    axios
+      .get(`http://localhost:3002/appointments/search/${value}`, {
+        headers: {
+          "access-token": token,
+          "clinic-database": clinicDb,
+          role: role,
+          value: value,
+        },
+      })
+      .then((respone) => {
+        if (respone.data.length > 0) {
+          setRdvs(respone.data);
+        } else {
+          setRdvs([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
       <Sidebar>
@@ -391,6 +379,15 @@ function SecretaryRDV() {
               <Typography variant="h5" color="blue-gray">
                 Liste des rendez-vous
               </Typography>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div className="w-full md:w-72">
+              <Input
+                label="Rechercher"
+                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                onChange={(e) => searchRDV(e.target.value)}
+              />
             </div>
           </div>
         </CardHeader>

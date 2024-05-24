@@ -35,6 +35,52 @@ async function getAppointments(clinicDbName, role, id) {
   });
 }
 
+async function searchAppointments(clinicDbName, role, id, search) {
+  return new Promise((resolve, reject) => {
+    const pool = getConnectionPool(clinicDbName);
+    console.log(search);
+    let query = `
+      SELECT a.*, 
+             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name, 
+             CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+      FROM appointments a
+      JOIN users d ON a.doctor_id = d.id
+      JOIN patients p ON a.patient_id = p.id`;
+
+    let queryParams = [`%${search}%`, `%${search}%`, `%${search}%`];
+
+    if (role === "admin" || role === "secretary") {
+      query += `
+        WHERE p.first_name LIKE ? 
+        OR p.last_name LIKE ? 
+        OR p.cin LIKE ?`;
+    } else if (role === "doctor") {
+      query += `
+        WHERE a.doctor_id = ? 
+        AND (p.first_name LIKE ? 
+        OR p.last_name LIKE ? 
+        OR p.cin LIKE ?)`;
+      queryParams.unshift(id);
+    } else {
+      return reject("Unauthorized");
+    }
+
+    query += `
+      ORDER BY STR_TO_DATE(CONCAT(a.date, ' ', a.time), '%Y-%m-%d %H:%i:%s') DESC`;
+
+    console.log("Query: ", query);
+    console.log("Query Parameters: ", queryParams);
+
+    pool.query(query, queryParams, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+}
+
 async function getAppointment(clinicDbName, id) {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
@@ -135,4 +181,5 @@ module.exports = {
   createAppointment,
   updateAppointment,
   deleteAppointment,
+  searchAppointments,
 };

@@ -373,6 +373,33 @@ function DoctorRDV() {
 
     fetchRDVs();
   }, []);
+  const searchRDV = (value) => {
+    if (value === "") {
+      window.location.reload();
+    }
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    axios
+      .get(`http://localhost:3002/appointments/search/${value}`, {
+        headers: {
+          "access-token": token,
+          "clinic-database": clinicDb,
+          role: role,
+          value: value,
+        },
+      })
+      .then((respone) => {
+        if (respone.data.length > 0) {
+          setRdvs(respone.data);
+        } else {
+          setRdvs([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
 
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
@@ -391,6 +418,15 @@ function DoctorRDV() {
               <Typography variant="h5" color="blue-gray">
                 Liste des rendez-vous
               </Typography>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div className="w-full md:w-72">
+              <Input
+                label="Rechercher"
+                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                onChange={(e) => searchRDV(e.target.value)}
+              />
             </div>
           </div>
         </CardHeader>
