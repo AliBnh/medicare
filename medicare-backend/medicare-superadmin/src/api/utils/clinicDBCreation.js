@@ -53,10 +53,8 @@ function createClinicDB(code, adminEmail, adminPassword) {
             cin VARCHAR(255),
             weight INT,
             height INT,
-            Insurance VARCHAR(255),
-            doctor_id INT NOT NULL,
-            FOREIGN KEY (doctor_id) REFERENCES Users(id)
-    )`
+            Insurance VARCHAR(255)
+              )`
   );
   db.query(
     `CREATE TABLE Appointments (
@@ -103,6 +101,16 @@ function createClinicDB(code, adminEmail, adminPassword) {
             FOREIGN KEY (doctor_id) REFERENCES Users(id),
             FOREIGN KEY (patient_id) REFERENCES Patients(id)
         )`
+  );
+  db.query(
+    ` CREATE TABLE DoctorPatientLinks (
+              doctor_id INT,
+              patient_id INT,
+              PRIMARY KEY (doctor_id, patient_id),
+              FOREIGN KEY (doctor_id) REFERENCES Users(id),
+              FOREIGN KEY (patient_id) REFERENCES Patients(id)
+          
+          );`
   );
   db.query(`USE centraldb`, (err, result) => {
     if (err) {

@@ -97,7 +97,7 @@ function DoctorLoginPage() {
         localStorage.setItem("role", response.data.role);
         localStorage.setItem("id", response.data.id);
         localStorage.setItem("access-token", response.data.accessToken);
-        navigate("/doctor/dashboard");
+        navigate("/doctor/patients");
       })
       .catch(function (error) {
         console.log(error);

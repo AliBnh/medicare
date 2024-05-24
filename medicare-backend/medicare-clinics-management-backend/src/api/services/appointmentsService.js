@@ -58,7 +58,7 @@ async function createAppointment(clinicDbName, appointment) {
     const pool = getConnectionPool(clinicDbName);
 
     pool.query(
-      "INSERT INTO appointments (date,time,patient_id,doctor_id,type) VALUES (?,?,?,?,?)",
+      "INSERT INTO appointments (date, time, patient_id, doctor_id, type) VALUES (?, ?, ?, ?, ?)",
       [
         appointment.date,
         appointment.time,
@@ -70,7 +70,19 @@ async function createAppointment(clinicDbName, appointment) {
         if (err) {
           reject(err);
         } else {
-          resolve(result);
+          pool.query(
+            `INSERT INTO DoctorPatientLinks (doctor_id, patient_id)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE doctor_id = doctor_id`,
+            [appointment.doctor_id, appointment.patient_id],
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            }
+          );
         }
       }
     );

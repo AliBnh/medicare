@@ -48,8 +48,17 @@ exports.searchPatient = async (req, res) => {
 exports.createPatient = async (req, res) => {
   const clinicDbName = req.headers["clinic-database"];
   const patient = req.body;
-  try {
-    const result = await patientsService.createPatient(clinicDbName, patient);
+  const role = req.headers["role"];
+  const accessToken = req.headers["access-token"];
+  const decoded = verify(accessToken, "jwtsecretplschange");
+  const id = decoded.id;
+    try {
+    const result = await patientsService.createPatient(
+      clinicDbName,
+      patient,
+      role,
+      id
+    );
     res.send(result);
   } catch (error) {
     console.error(error);

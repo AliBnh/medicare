@@ -1,19 +1,19 @@
 const getConnectionPool = require("../../config/connectionPool");
+
 exports.getPatients = (clinicDbName, role, id) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
     let query = `
-      SELECT p.*, 
-             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
-      FROM patients p
-      JOIN users d ON p.doctor_id = d.id`;
+      SELECT p.*
+      FROM patients p`;
 
     let queryParams = [];
 
     if (role === "admin" || role === "secretary") {
     } else if (role === "doctor") {
-      query += " WHERE p.doctor_id = ?";
+      query +=
+        " JOIN DoctorPatientLinks dpl ON p.id = dpl.patient_id WHERE dpl.doctor_id = ?";
       queryParams.push(id);
     } else {
       return reject("Unauthorized");
@@ -34,10 +34,8 @@ exports.getPatient = (clinicDbName, id) => {
     const pool = getConnectionPool(clinicDbName);
 
     const query = `
-      SELECT p.*, 
-             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+      SELECT p.*
       FROM patients p
-      JOIN users d ON p.doctor_id = d.id
       WHERE p.id = ?`;
 
     pool.query(query, [id], (err, result) => {
@@ -50,22 +48,53 @@ exports.getPatient = (clinicDbName, id) => {
   });
 };
 
+// exports.searchPatient = (clinicDbName, term, idDoc) => {
+//   return new Promise((resolve, reject) => {
+//     const pool = getConnectionPool(clinicDbName);
+
+//     let query = `
+//       SELECT p.*
+//       FROM patients p
+//       WHERE (p.first_name LIKE ? OR p.last_name LIKE ? OR p.cin LIKE ?)`;
+
+//     let queryParams = [`%${term}%`, `%${term}%`, `%${term}%`];
+
+//     if (idDoc != null) {
+//       query += " AND p.doctor_id = ?";
+//       queryParams.push(idDoc);
+//     }
+
+//     pool.query(query, queryParams, (err, result) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve(result);
+//       }
+//     });
+//   });
+// };
 exports.searchPatient = (clinicDbName, term, idDoc) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
     let query = `
-      SELECT p.*, 
-             CONCAT(d.first_name, ' ', d.last_name) AS doctor_name
+      SELECT p.*
       FROM patients p
-      JOIN users d ON p.doctor_id = d.id
-      WHERE (p.first_name LIKE ? OR p.last_name LIKE ? OR p.cin LIKE ?)`;
+      `;
 
     let queryParams = [`%${term}%`, `%${term}%`, `%${term}%`];
 
     if (idDoc != null) {
-      query += " AND p.doctor_id = ?";
+      query += `
+        INNER JOIN DoctorPatientLinks dpl ON p.id = dpl.patient_id
+        WHERE (p.first_name LIKE ? OR p.last_name LIKE ? OR p.cin LIKE ?)
+        AND dpl.doctor_id = ?
+      `;
       queryParams.push(idDoc);
+    } else {
+      query += `
+        WHERE (p.first_name LIKE ? OR p.last_name LIKE ? OR p.cin LIKE ?)
+      `;
     }
 
     pool.query(query, queryParams, (err, result) => {
@@ -78,12 +107,40 @@ exports.searchPatient = (clinicDbName, term, idDoc) => {
   });
 };
 
-exports.createPatient = (clinicDbName, patient) => {
+// exports.createPatient = (clinicDbName, patient) => {
+//   return new Promise((resolve, reject) => {
+//     const pool = getConnectionPool(clinicDbName);
+
+//     pool.query(
+//       "INSERT INTO patients (first_name, last_name, email, phone, gender,date_of_birth,cin,weight,height,insurance) VALUES ( ?, ?, ?, ?, ?,?,?,?,? ,?)",
+//       [
+//         patient.first_name,
+//         patient.last_name,
+//         patient.email,
+//         patient.phone,
+//         patient.gender,
+//         patient.date_of_birth,
+//         patient.cin,
+//         patient.weight,
+//         patient.height,
+//         patient.insurance,
+//       ],
+//       (err, result) => {
+//         if (err) {
+//           reject(err);
+//         } else {
+//           resolve(result);
+//         }
+//       }
+//     );
+//   });
+// };
+exports.createPatient = (clinicDbName, patient, role, id) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
     pool.query(
-      "INSERT INTO patients (first_name, last_name, email, phone, gender,date_of_birth,cin,weight,height,insurance, doctor_id) VALUES (?, ?, ?, ?, ?, ?,?,?,?,? ,?)",
+      "INSERT INTO patients (first_name, last_name, email, phone, gender, date_of_birth, cin, weight, height, insurance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         patient.first_name,
         patient.last_name,
@@ -95,13 +152,28 @@ exports.createPatient = (clinicDbName, patient) => {
         patient.weight,
         patient.height,
         patient.insurance,
-        patient.doctor_id,
       ],
       (err, result) => {
         if (err) {
-          reject(err);
+          return reject(err);
         } else {
-          resolve(result);
+          const patientId = result.insertId;
+
+          if (role === "doctor") {
+            pool.query(
+              "INSERT INTO DoctorPatientLinks (doctor_id, patient_id) VALUES (?, ?)",
+              [id, patientId],
+              (err, result) => {
+                if (err) {
+                  return reject(err);
+                } else {
+                  resolve(result);
+                }
+              }
+            );
+          } else {
+            resolve(result);
+          }
         }
       }
     );
@@ -113,7 +185,7 @@ exports.updatePatient = (clinicDbName, id, patient) => {
     const pool = getConnectionPool(clinicDbName);
 
     pool.query(
-      "UPDATE patients SET first_name = ?, last_name = ?, email = ?, phone = ?, gender = ?,date_of_birth=?,cin=?,weight=?,height=?,insurance=?, doctor_id = ? WHERE id = ?",
+      "UPDATE patients SET first_name = ?, last_name = ?, email = ?, phone = ?, gender = ?,date_of_birth=?,cin=?,weight=?,height=?,insurance=? WHERE id = ?",
       [
         patient.first_name,
         patient.last_name,
@@ -125,7 +197,6 @@ exports.updatePatient = (clinicDbName, id, patient) => {
         patient.weight,
         patient.height,
         patient.insurance,
-        patient.doctor_id,
         id,
       ],
       (err, result) => {

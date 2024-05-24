@@ -86,14 +86,7 @@ function SecretaryPatients() {
   const [idToDelete, setIdToDelete] = useState();
   const [isAddDisplayed, setIsAddDisplayed] = useState();
 
-  const TABLE_HEAD = [
-    "Nom",
-    "Prénom",
-    "CIN",
-    "Docteur traitant",
-    "Téléphone",
-    "Actions",
-  ];
+  const TABLE_HEAD = ["Nom", "Prénom", "CIN", "Téléphone", "Actions"];
 
   const toggleSidebar = () => {
     setShowSidebar(!showSidebar);
@@ -199,7 +192,6 @@ function SecretaryPatients() {
   const [selectedGender, setSelectedGender] = useState();
   const [date, setDate] = useState();
   const [docId, setDocId] = useState();
-  const [doctor_name, setDoctor_name] = useState();
   const [height, setHeight] = useState();
   const [weight, setWeight] = useState();
   const [insurance, setInsurance] = useState();
@@ -269,7 +261,6 @@ function SecretaryPatients() {
     const token = localStorage.getItem("access-token");
     const role = localStorage.getItem("role");
     const clinicDb = localStorage.getItem("clinic-database");
-    console.log(date);
     axios
       .post(
         "http://localhost:3002/patients",
@@ -284,8 +275,6 @@ function SecretaryPatients() {
           weight: weight,
           insurance: insurance,
           email: email,
-          doctor_id: docId,
-          doctor_name: doctor_name,
         },
         {
           headers: {
@@ -312,10 +301,7 @@ function SecretaryPatients() {
     const token = localStorage.getItem("access-token");
     const role = localStorage.getItem("role");
     const clinicDb = localStorage.getItem("clinic-database");
-
-    // Vérifier si le token est disponible
     if (token) {
-      // Ajouter le token dans les en-têtes de la requête
       axios
         .post(
           "http://localhost:3002/appointments",
@@ -335,7 +321,6 @@ function SecretaryPatients() {
           }
         )
         .then((response) => {
-          console.log(response);
           handleCancel();
           navigate("/rdv");
         })
@@ -402,7 +387,6 @@ function SecretaryPatients() {
           setInsuranceEdit(respone.data[0].Insurance);
           setDateEdit(respone.data[0].date_of_birth);
           setSelectedGenderEdit(respone.data[0].gender);
-          setSelectedDocEdit(respone.data[0].doctor_id);
         } else {
           setPatientToEdit([]);
         }
@@ -429,7 +413,6 @@ function SecretaryPatients() {
           insurance: insuranceEdit,
           date_of_birth: dateEdit,
           gender: selectedGenderEdit,
-          doctor_id: selectedDocEdit,
         },
         {
           headers: {
@@ -537,10 +520,7 @@ function SecretaryPatients() {
             </thead>
             <tbody>
               {getVisiblePatients().map(
-                (
-                  { id, first_name, last_name, cin, doctor_name, phone },
-                  index
-                ) => {
+                ({ id, first_name, last_name, cin, phone }, index) => {
                   const isLast = index === TABLE_ROWS.length - 1;
                   const classes = isLast
                     ? "p-4"
@@ -582,17 +562,6 @@ function SecretaryPatients() {
                             className="font-normal"
                           >
                             {cin}
-                          </Typography>
-                        </div>
-                      </td>
-                      <td className={classes}>
-                        <div className="flex flex-col">
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {doctor_name}
                           </Typography>
                         </div>
                       </td>
@@ -1038,39 +1007,6 @@ function SecretaryPatients() {
                             </div>
                           </div>
                         </div>
-                        <div class="w-4/6 px-3 mb-6 md:mb-0">
-                          <label
-                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                            for="grid-state"
-                          >
-                            Docteur
-                          </label>
-                          <div class="relative">
-                            <select
-                              name="roler"
-                              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                              id="grid-state"
-                              value={docId}
-                              onChange={handleDocSelection}
-                            >
-                              <option value="">Choisir</option>
-                              {docs.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                  {item.first_name} {item.last_name}
-                                </option>
-                              ))}
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                              <svg
-                                class="fill-current h-4 w-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </form>
                   </div>
@@ -1288,39 +1224,6 @@ function SecretaryPatients() {
                               <option value="">Choisir</option>
                               <option value="M">M</option>
                               <option value="F">F</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                              <svg
-                                class="fill-current h-4 w-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="w-4/6 px-3 mb-6 md:mb-0">
-                          <label
-                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                            for="grid-state"
-                          >
-                            Docteur
-                          </label>
-                          <div class="relative">
-                            <select
-                              name="roler"
-                              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                              id="grid-state"
-                              value={selectedDocEdit}
-                              onChange={handleDocSelectionEdit}
-                            >
-                              <option value="">Choisir</option>
-                              {docs.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                  {item.first_name} {item.last_name}
-                                </option>
-                              ))}
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                               <svg
