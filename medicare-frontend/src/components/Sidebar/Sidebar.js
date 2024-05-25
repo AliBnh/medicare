@@ -133,7 +133,10 @@ export default function Sidebar({ children }) {
           </div>
 
           <List className="sm:flex-row mt-12">
-            <div onClick={() => headToDashboard()} className="flex ">
+            <div
+              onClick={() => headToDashboard()}
+              className="flex font-semibold"
+            >
               <ListItem className={`${expanded ? "" : "w-11"} `}>
                 <ListItemPrefix>
                   <PresentationChartBarIcon className="h-5 w-5 font-semibold" />
@@ -159,7 +162,7 @@ export default function Sidebar({ children }) {
                 {expanded ? "Patients" : ""}
               </ListItem>
             </div>
-            <div onClick={() => headToAppointments()} className="flex">
+            <div onClick={() => headToAppointments()} className="flex ">
               <ListItem className={`${expanded ? "" : "w-11"} `}>
                 <ListItemPrefix>
                   <ClockIcon className="h-5 w-5" />
