@@ -34,7 +34,6 @@ async function searchAppointments(req, res) {
       search
     );
     res.send(result);
-    console.log(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

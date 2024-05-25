@@ -121,9 +121,6 @@ function SecretaryRDV() {
   const [rdvs, setRdvs] = useState([]);
   const [clinicDb, setClinicDb] = useState([]);
 
-  const handleCancel = () => {
-    setDisplayed(0);
-  };
   const handleDeleteAppointment = (id) => {
     const tokens = localStorage.getItem("access-token");
     const roles = localStorage.getItem("role");
@@ -214,92 +211,6 @@ function SecretaryRDV() {
 
   const TABLE_ROWS = rdvs;
 
-  const [nom, setNom] = useState();
-  const [prenom, setPrenom] = useState();
-  const [time, setTime] = useState();
-  const [email, setEmail] = useState();
-  const [phone, setPhone] = useState();
-  const [selectedGender, setSelectedGender] = useState();
-  const [selectedDoc, setSelectedDoc] = useState();
-  const [selectedType, setSelectedType] = useState();
-  const [date, setDate] = useState();
-  const [docId, setDocId] = useState();
-  const [patientId, setPatientId] = useState();
-  const [displayed, setDisplayed] = useState();
-  const [docs, setDocs] = useState([]);
-
-  const handleDocSelection = (event) => {
-    setDocId(event.target.value);
-  };
-  const handlePatientSelection = (event) => {
-    setPatientId(event.target.value);
-  };
-  const handleTypeSelection = (event) => {
-    setSelectedType(event.target.value);
-  };
-
-  const handleDeleteUser = (UserIdDelete) => {
-    const tokens = localStorage.getItem("access-token");
-    const roles = localStorage.getItem("role");
-    const clinicDbs = localStorage.getItem("clinic-database");
-    if ((UserIdDelete = !0)) {
-      axios
-        .delete(`http://localhost:3002/users/${UserIdDelete}`, {
-          headers: {
-            "access-token": tokens,
-            "clinic-database": clinicDbs,
-            role: roles,
-          },
-        })
-        .then((response) => {
-          console.log(response);
-          handleCancel();
-          navigate("/admin/dashboard");
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else {
-      console.log("Token d'authentification non disponible.");
-    }
-  };
-
-  const handleAddRDV = async () => {
-    const token = localStorage.getItem("access-token");
-    const role = localStorage.getItem("role");
-    const clinicDb = localStorage.getItem("clinic-database");
-
-    if (token) {
-      axios
-        .post(
-          "http://localhost:3002/appointments",
-          {
-            patient_id: patientId,
-            time: time,
-            date: date,
-            type: selectedType,
-            doctor_id: docId,
-          },
-          {
-            headers: {
-              "access-token": token,
-              "clinic-database": clinicDb,
-              role: role,
-            },
-          }
-        )
-        .then((response) => {
-          handleCancel();
-          navigate("/rdv");
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else {
-      console.log("Token d'authentification non disponible.");
-    }
-  };
-
   useEffect(() => {
     const token = localStorage.getItem("access-token");
     const role = localStorage.getItem("role");
@@ -362,6 +273,113 @@ function SecretaryRDV() {
         console.error(error);
       });
   };
+
+  const [docs, setDocs] = useState([]);
+
+  const [status, setStatus] = useState([
+    { name: "pending", value: "En attente" },
+    { name: "completed", value: "Passé" },
+    { name: "cancelled", value: "Annulé" },
+  ]);
+  const [types, setTypes] = useState([
+    { name: "consultation", value: "Consultation" },
+    { name: "test", value: "Test" },
+    { name: "control", value: "Contrôle" },
+  ]);
+  const handleDocSelection = (event) => {
+    setDoctorEdit(event.target.value);
+  };
+  const handleStatusSelection = (event) => {
+    setStatusEdit(event.target.value);
+  };
+
+  const handleTypeSelection = (event) => {
+    setTypeEdit(event.target.value);
+  };
+  const [displayedEdit, setDisplayedEdit] = useState(null);
+  const [editRdvId, setEditRdvId] = useState();
+  const [rdvToEdit, setRdvToEdit] = useState([]);
+  const [statusEdit, setStatusEdit] = useState();
+  const [dateEdit, setDateEdit] = useState();
+  const [timeEdit, setTimeEdit] = useState();
+  const [typeEdit, setTypeEdit] = useState();
+  const [patientEdit, setPatientEdit] = useState();
+  const [doctorEdit, setDoctorEdit] = useState();
+  const editRdv = (id) => {
+    setDisplayedEdit(1);
+    setEditRdvId(id);
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    axios
+      .get(`http://localhost:3002/appointments/${id}`, {
+        headers: {
+          "access-token": token,
+          "clinic-database": clinicDb,
+          role: role,
+        },
+      })
+      .then((respone) => {
+        if (respone.data.length > 0) {
+          setRdvToEdit(respone.data[0]);
+          setStatusEdit(respone.data[0].status);
+          setDateEdit(respone.data[0].date);
+          setTimeEdit(respone.data[0].time);
+          setTypeEdit(respone.data[0].type);
+          setDoctorEdit(respone.data[0].doctor_id);
+          setPatientEdit(respone.data[0].patient_id);
+        } else {
+          setRdvToEdit([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  const handleEditRdv = async () => {
+    const token = localStorage.getItem("access-token");
+    const role = localStorage.getItem("role");
+    const clinicDb = localStorage.getItem("clinic-database");
+    const id = localStorage.getItem("id");
+    axios
+      .put(
+        "http://localhost:3002/appointments/" + editRdvId,
+        {
+          status: statusEdit,
+          date: dateEdit,
+          time: timeEdit,
+          type: typeEdit,
+          patient_id: patientEdit,
+          doctor_id: doctorEdit,
+        },
+        {
+          headers: {
+            "access-token": token,
+            "clinic-database": clinicDb,
+            role: role,
+          },
+        }
+      )
+      .then((response) => {
+        window.location.reload();
+        setDisplayedEdit([0, null]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(rdvs?.length / itemsPerPage) || 1;
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const getVisibleAppointments = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return rdvs?.slice(startIndex, endIndex);
+  };
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
       <Sidebar>
@@ -376,7 +394,7 @@ function SecretaryRDV() {
         <CardHeader floated={false} shadow={false} className="rounded-none">
           <div className="mb-8 flex items-center justify-between gap-8">
             <div>
-              <Typography variant="h5" color="blue-gray">
+              <Typography variant="h4" color="blue-gray">
                 Liste des rendez-vous
               </Typography>
             </div>
@@ -412,7 +430,7 @@ function SecretaryRDV() {
               </tr>
             </thead>
             <tbody>
-              {TABLE_ROWS.map(
+              {getVisibleAppointments().map(
                 (
                   {
                     id,
@@ -465,7 +483,7 @@ function SecretaryRDV() {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {type}
+                            {types.find((item) => item.name === type).value}
                           </Typography>
                         </div>
                       </td>
@@ -511,7 +529,19 @@ function SecretaryRDV() {
                           ></div>
                         </Typography>
                       </td>
+
                       <td className={classes}>
+                        <Tooltip content="Modifier RDV">
+                          <IconButton
+                            variant="text"
+                            onClick={() => {
+                              editRdv(id);
+                            }}
+                            className="ml-[-0.5rem]"
+                          >
+                            <PencilIcon className="h-4 w-4 text-blue-700" />
+                          </IconButton>
+                        </Tooltip>
                         <Tooltip content="Supprimer RDV">
                           <IconButton
                             variant="text"
@@ -529,8 +559,32 @@ function SecretaryRDV() {
             </tbody>
           </table>
         </CardBody>
+        <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4 absolute bottom-2 w-full ">
+          <Typography variant="small" color="blue-gray" className="font-normal">
+            Page {currentPage} sur {totalPages}
+          </Typography>
+          <div className="flex gap-2">
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={currentPage === 1} // Disable previous button on first page
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              Précédent
+            </Button>
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={currentPage === totalPages} // Disable next button on last page
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Suivant
+            </Button>
+          </div>
+        </CardFooter>
       </Card>
-      {displayed ? (
+
+      {displayedEdit && (
         <div
           className="relative z-20"
           aria-labelledby="modal-title"
@@ -544,73 +598,55 @@ function SecretaryRDV() {
                 <div className="bg-white px-4 pb-4 pt-5 lg:p-6 lg:pb-4">
                   <div className="2xl:flex justify-start 2xl:items-start">
                     <form class="w-full max-w-2xl">
-                      <div class="flex  mx-3 mb-6">
-                        <div class="w-4/6 px-3 mb-6 md:mb-0">
+                      <div class="flex  mx-3 ">
+                        <div class="w-1/2 px-3 mb-8 ">
                           <label
                             class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                            for="grid-state"
+                            for="grid-first-name"
                           >
                             Patient
                           </label>
-                          <div class="relative">
-                            <select
-                              name="roler"
-                              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                              id="grid-state"
-                              value={patientId}
-                              onChange={handlePatientSelection}
-                            >
-                              <option value="">Choisir</option>
-                              {users.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                  {item.first_name} {item.last_name}
-                                </option>
-                              ))}
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                              <svg
-                                class="fill-current h-4 w-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                              </svg>
-                            </div>
-                          </div>
+                          <input
+                            class="appearance-none block w-full bg-gray-200 text-gray-500 border  rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                            id="grid-first-name"
+                            type="text"
+                            disabled
+                            value={patientEdit}
+                          />
                         </div>
-                        <div class="w-4/6 px-3 mb-6 md:mb-0">
+                        <div class="w-1/2 px-3 mb-8 ">
                           <label
                             class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                            for="grid-state"
+                            for="grid-first-name"
                           >
-                            Docteur
+                            Médecin
                           </label>
-                          <div class="relative">
-                            <select
-                              name="roler"
-                              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                              id="grid-state"
-                              value={docId}
-                              onChange={handleDocSelection}
+                          <select
+                            name="roler"
+                            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            id="grid-state"
+                            value={doctorEdit}
+                            onChange={handleDocSelection}
+                          >
+                            <option value="">Docteur</option>
+                            {docs.map((item) => (
+                              <option key={item.id} value={item.id}>
+                                {item.first_name} {item.last_name}
+                              </option>
+                            ))}
+                          </select>
+                          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg
+                              class="fill-current h-4 w-4"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
                             >
-                              <option value="">Choisir</option>
-                              {docs.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                  {item.first_name} {item.last_name}
-                                </option>
-                              ))}
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                              <svg
-                                class="fill-current h-4 w-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                              </svg>
-                            </div>
+                              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
                           </div>
                         </div>
+                      </div>
+                      <div class="flex mx-3 mb-8">
                         <div class="w-full md:w-1/2 px-3">
                           <label
                             class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
@@ -623,47 +659,83 @@ function SecretaryRDV() {
                             id="grid-last-name"
                             type="time"
                             placeholder="SIX"
-                            value={time}
-                            onChange={(e) => setTime(e.target.value)}
+                            value={timeEdit}
+                            onChange={(e) => setTimeEdit(e.target.value)}
                           />
                         </div>
-                      </div>
-                      <div class="flex mx-3 mb-6">
                         <div class="w-full md:w-1/2 px-3">
                           <label
                             class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                             for="grid-last-name"
                           >
-                            date
+                            Date
                           </label>
                           <input
                             class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                             id="grid-last-name"
                             type="date"
                             placeholder="SIX"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            value={dateEdit}
+                            onChange={(e) => setDateEdit(e.target.value)}
                           />
                         </div>
-                        <div class="w-4/6 px-3 mb-6 md:mb-0">
+                      </div>
+
+                      <div class="flex mx-3 mb-8">
+                        <div class="w-full px-3">
                           <label
                             class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                            for="grid-state"
+                            for="grid-password"
                           >
-                            type de rdv
+                            Status
                           </label>
                           <div class="relative">
                             <select
                               name="roler"
                               class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                               id="grid-state"
-                              value={selectedType}
+                              value={statusEdit}
+                              onChange={handleStatusSelection}
+                            >
+                              <option value="">Status</option>
+                              {status.map((item) => (
+                                <option key={item.value} value={item.name}>
+                                  {item.value}
+                                </option>
+                              ))}
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                              <svg
+                                class="fill-current h-4 w-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="w-full px-3">
+                          <label
+                            class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            for="grid-password"
+                          >
+                            Type de rdv
+                          </label>
+                          <div class="relative">
+                            <select
+                              name="roler"
+                              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                              id="grid-state"
+                              value={typeEdit}
                               onChange={handleTypeSelection}
                             >
-                              <option value="">Choisir</option>
-                              <option value="Consultation">Consultation</option>
-                              <option value="Test">Test</option>
-                              <option value="Contrôle">Contrôle</option>
+                              <option value="">Type</option>
+                              {types.map((item) => (
+                                <option key={item.value} value={item.name}>
+                                  {item.value}
+                                </option>
+                              ))}
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                               <svg
@@ -682,7 +754,9 @@ function SecretaryRDV() {
                 </div>
                 <div className="bg-gray-50 px-4 py-3 2xl:flex 2xl:flex-row-reverse 2xl:px-6">
                   <button
-                    onClick={handleAddRDV}
+                    onClick={() => {
+                      handleEditRdv();
+                    }}
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-super-admin-submit px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-900 2xl:ml-3 2xl:w-auto"
                   >
@@ -690,7 +764,8 @@ function SecretaryRDV() {
                   </button>
                   <button
                     onClick={() => {
-                      setDisplayed(0);
+                      setDisplayedEdit(null);
+                      setEditRdvId(null);
                     }}
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 2xl:mt-0 2xl:w-auto"
@@ -702,8 +777,6 @@ function SecretaryRDV() {
             </div>
           </div>
         </div>
-      ) : (
-        <></>
       )}
     </div>
   );

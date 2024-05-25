@@ -473,11 +473,11 @@ function SecretaryPatients() {
         <CardHeader floated={false} shadow={false} className="rounded-none">
           <div className="mb-8 flex items-center justify-between gap-8">
             <div>
-              <Typography variant="h5" color="blue-gray">
+              <Typography variant="h4" color="blue-gray">
                 Liste des patients
               </Typography>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 2xl:flex-row">
+            <div className="flex shrink-0 flex-col gap-2 2xl:flex-row mt-3 mr-6">
               <Button
                 onClick={() => setDisplayed(1)}
                 className="flex items-center gap-3"

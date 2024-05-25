@@ -335,7 +335,7 @@ function AdminDashboard() {
       });
   };
   return (
-    <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
+    <div className="backdrop-blur-none	  transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
       <Sidebar>
         <SidebarItem icon={<Home size={20} />} text="Accueil" alert />
         <SidebarItem icon={<Users size={20} />} text="Utilisateurs" active />
@@ -344,21 +344,21 @@ function AdminDashboard() {
         <SidebarItem icon={<WalletMinimal size={20} />} text="Paiements" />
         <hr className="my-3" />
       </Sidebar>
-      <Card className="h-full w-full rounded-none">
+      <Card className="h-full w-full rounded-none ">
         <CardHeader floated={false} shadow={false} className="rounded-none">
           <div className="mb-8 flex items-center justify-between gap-8">
             <div>
-              <Typography variant="h5" color="blue-gray">
+              <Typography variant="h4" color="blue-gray">
                 Liste des membres du cabinet
               </Typography>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 2xl:flex-row">
+            <div className="flex shrink-0 flex-col gap-2 2xl:flex-row mt-8 mr-8">
               <Button
                 onClick={() => setDisplayed(1)}
                 className="flex items-center gap-3"
                 size="sm"
               >
-                <UserPlusIcon strokeWidth={2} className="h-4 w-4" /> Ajouter un
+                <UserPlusIcon strokeWidth={2} className="h-4 w-4 " /> Ajouter
                 membre
               </Button>
             </div>
