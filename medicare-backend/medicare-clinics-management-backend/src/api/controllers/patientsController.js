@@ -18,9 +18,13 @@ exports.getPatients = async (req, res) => {
 
 exports.getPatient = async (req, res) => {
   const clinicDbName = req.headers["clinic-database"];
-  const id = req.params.id;
+
+  const patientId = req.params.id;
+  const accessToken = req.headers["access-token"];
+  const decoded = verify(accessToken, "jwtsecretplschange");
+  const id = decoded.id;
   try {
-    const result = await patientsService.getPatient(clinicDbName, id);
+    const result = await patientsService.getPatient(clinicDbName, patientId);
     res.send(result);
   } catch (error) {
     console.error(error);
@@ -52,7 +56,7 @@ exports.createPatient = async (req, res) => {
   const accessToken = req.headers["access-token"];
   const decoded = verify(accessToken, "jwtsecretplschange");
   const id = decoded.id;
-    try {
+  try {
     const result = await patientsService.createPatient(
       clinicDbName,
       patient,

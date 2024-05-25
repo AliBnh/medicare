@@ -1,421 +1,473 @@
-import React, { useState, useEffect, useRef } from "react";
+import SidebarItem from "../../components/Sidebar/Sidebar";
+import React, { useState, useRef } from "react";
 import html2pdf from "html2pdf.js";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import { SidebarItem } from "../../components/Sidebar/Sidebar";
+import { useNavigate, useParams } from "react-router-dom";
+import { Home, Users, Hospital, Calendar, WalletMinimal } from "lucide-react";
 import {
-  BrowserRouter as Router,
-  Route,
-  Link,
-  useParams,
-} from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { WalletMinimal, Users, Hospital, TrashIcon } from "lucide-react";
-import { useCountries } from "use-react-countries";
-import axios from "axios";
-import jsPDF from "jspdf";
-
-import {
-  List,
-  ListItem,
-  ListItemPrefix,
-  ListItemSuffix,
-  Chip,
-  Accordion,
-  AccordionHeader,
-  AccordionBody,
-  Alert,
-  CardFooter,
-  Avatar,
-  Tooltip,
   Card,
   CardHeader,
   CardBody,
-  Button,
   Typography,
-  Tabs,
-  TabsHeader,
-  TabsBody,
-  Tab,
-  TabPanel,
+  Input,
   Select,
   Option,
-  Input,
+  Button,
+  Textarea,
   IconButton,
-  Drawer,
 } from "@material-tailwind/react";
-import {
-  PresentationChartBarIcon,
-  ShoppingBagIcon,
-  UserCircleIcon,
-  Cog6ToothIcon,
-  InboxIcon,
-  PowerIcon,
-  PencilIcon,
-  UserPlusIcon,
-  BanknotesIcon,
-  CreditCardIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/solid";
-import {
-  ChevronRightIcon,
-  ChevronDownIcon,
-  CubeTransparentIcon,
-  Bars3Icon,
-  XMarkIcon,
-  ArrowDownTrayIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import {
-  LayoutDashboard,
-  Home,
-  StickyNote,
-  Layers,
-  Flag,
-  Calendar,
-  LifeBuoy,
-  Settings,
-} from "lucide-react";
-
+import { PlusCircleIcon, MinusCircleIcon } from "@heroicons/react/24/solid";
+import axios from "axios";
+import { useEffect } from "react";
 function DoctorConsultation() {
-  let { rdvId } = useParams();
-
-  const [users, setUsers] = useState([]);
-  const [docs, setDocs] = useState([]);
-
+  const { rdvId } = useParams();
+  const { patientId } = useParams();
   const navigate = useNavigate();
-
-  const [clinicDb, setClinicDb] = useState([]);
-
   const contentRef = useRef(null);
 
   const handleDownloadPDF = () => {
     const opt = {
       margin: 0,
-      filename: "document.pdf",
+      filename: "consultation.pdf",
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
     };
-
     html2pdf().from(contentRef.current).set(opt).save();
   };
 
-  const cdb = localStorage.getItem("clinic-database");
+  const [id, setId] = useState("");
+  const [dateNaissance, setDateNaissance] = useState(new Date());
+  const [telephone, setTelephone] = useState("");
+  const [taille, setTaille] = useState("");
+  const [poids, setPoids] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [age, setAge] = useState("");
+
+  const [motifConsultation, setMotifConsultation] = useState("");
+  const [symptomes, setSymptomes] = useState("");
+  const [diagnostic, setDiagnostic] = useState("");
+  const [antecedentsMedicaux, setAntecedentsMedicaux] = useState("");
+  const [antecedentsChirurgicaux, setAntecedentsChirurgicaux] = useState("");
+  const [antecedentsFamiliaux, setAntecedentsFamiliaux] = useState("");
+  const [antecedentsAllergiques, setAntecedentsAllergiques] = useState("");
+  const [diabete, setDiabete] = useState("");
+  const [hta, setHta] = useState("");
+  const [obesite, setObesite] = useState("");
+  const [acideUrique, setAcideUrique] = useState("");
+  const [tabac, setTabac] = useState("");
+  const [alcool, setAlcool] = useState("");
+  const [traitementsLongueDuree, setTraitementsLongueDuree] = useState("");
+  const [notes, setNotes] = useState("");
+  const [prixConsultation, setPrixConsultation] = useState("");
+  const [remarqueOrdonnance, setRemarqueOrdonnance] = useState("");
+  const [traitements, setTraitements] = useState([
+    {
+      medicament: "",
+      formeGalenique: "",
+      dosage: "",
+      momentPrise: "",
+      avantApresRepas: "",
+      duree: "",
+      jsm: "",
+      remarque: "",
+    },
+  ]);
+
+  const handleAddTraitement = () => {
+    setTraitements([
+      ...traitements,
+      {
+        medicament: "",
+        formeGalenique: "",
+        dosage: "",
+        momentPrise: "",
+        avantApresRepas: "",
+        duree: "",
+        jsm: "",
+        remarque: "",
+      },
+    ]);
+  };
+
+  const handleRemoveTraitement = (index) => {
+    const newTraitements = traitements.filter((_, i) => i !== index);
+    setTraitements(newTraitements);
+  };
+
+  const handleTraitementChange = (index, field, value) => {
+    const newTraitements = traitements.map((traitement, i) =>
+      i === index ? { ...traitement, [field]: value } : traitement
+    );
+    setTraitements(newTraitements);
+  };
   useEffect(() => {
-    const token = localStorage.getItem("access-token");
-    const role = localStorage.getItem("role");
-    const clinicDb = localStorage.getItem("clinic-database");
+    const fetchPatient = async () => {
+      try {
+        const token = localStorage.getItem("access-token");
+        const clinicDb = localStorage.getItem("clinic-database");
 
-    const fetchUsers = async () => {
-      const token = localStorage.getItem("access-token");
-      const role = localStorage.getItem("role");
-      setClinicDb(cdb);
-      if (cdb) {
-        try {
-          axios
-            .get("http://localhost:3002/patients", {
-              headers: {
-                // 'Authorization': Bearer ${token} ,
-                "access-token": token,
-                "clinic-database": cdb,
-                role: role,
-              },
-            })
-            .then((response) => {
-              //console.log(response.data[0].role);
-
-              if (response.data) {
-                setUsers(response.data);
-                const doctors = response.data.filter(
-                  (user) => user.role === "doctor"
-                );
-                setDocs(doctors);
-              }
-              console.log(users);
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        } catch (error) {
-          console.log("Token d'authentification non disponible.");
-        }
+        const response = await axios.get(
+          `http://localhost:3002/patients/${patientId}`,
+          {
+            headers: {
+              "access-token": token,
+              "clinic-database": clinicDb,
+              role: "doctor",
+            },
+          }
+        );
+        setId(response.data[0].id);
+        setDateNaissance(response.data[0].date_of_birth);
+        setTelephone(response.data[0].phone);
+        setTaille(response.data[0].height);
+        setPoids(response.data[0].weight);
+        setFirstName(response.data[0].first_name);
+        setLastName(response.data[0].last_name);
+        setAge(
+          new Date().getFullYear() -
+            new Date(response.data[0].date_of_birth).getFullYear()
+        );
+      } catch (error) {
+        console.error(error);
       }
     };
-
-    fetchUsers();
+    fetchPatient();
   }, []);
-
-  useEffect(() => {
-    const clinicDb = localStorage.getItem("clinic-database");
-
-    const token = localStorage.getItem("access-token");
-    const role = localStorage.getItem("role");
-    setClinicDb(cdb);
-    if (cdb) {
-      try {
-        axios
-          .get("http://localhost:3002/users", {
-            headers: {
-              // 'Authorization': Bearer ${token} ,
-              "access-token": token,
-              "clinic-database": cdb,
-              role: role,
-            },
-          })
-          .then((response) => {
-            //console.log(response.data[0].role);
-
-            if (response.data) {
-              const doctors = response.data.filter(
-                (user) => user.role === "doctor"
-              );
-              setDocs(doctors);
-            }
-            console.log(users);
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      } catch (error) {
-        console.log("Token d'authentification non disponible.");
-      }
-    }
-  }, []);
-
-  const [text, setText] = useState();
-  const [motifConsultation, setMotifConsultation] = useState();
 
   return (
-    <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
+    <div className="flex w-screen h-screen ">
       <Sidebar>
         <SidebarItem icon={<Home size={20} />} text="Accueil" alert />
         <SidebarItem icon={<Users size={20} />} text="Utilisateurs" active />
         <SidebarItem icon={<Hospital size={20} />} text="Patients" alert />
         <SidebarItem icon={<Calendar size={20} />} text="Rendez-vous" />
         <SidebarItem icon={<WalletMinimal size={20} />} text="Paiements" />
-        <hr className="my-3" />
       </Sidebar>
-      <Card className="h-full w-full rounded-none">
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="mb-8 flex items-center justify-between gap-8">
-            <div>
-              <Typography variant="h5" color="blue-gray">
-                Consultation pour : {rdvId}
-              </Typography>
+
+      <Card className="h-full w-full overflow-auto bg-gray-50">
+        <Typography
+          color="blue-gray"
+          variant="h4"
+          className="my-6 mb-12 uppercase "
+        >
+          Consultation
+        </Typography>
+        <CardBody className="px-8">
+          <div className="mb-10 pt-2  border border-white rounded-xl bg-white w-9/12 mx-auto">
+            <Typography color="blue" variant="h5">
+              Informations Patient
+            </Typography>
+            {/* <hr className="my-2" /> */}
+            <div className="border-t border-blue-100 mt-4"></div>
+            <div className="text-lg">
+              <table className="min-w-full bg-white">
+                <tbody>
+                  <tr className="w-full ">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Typography className="font-bold">Nom </Typography>
+                      {firstName} {lastName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Typography className="font-bold">Téléphone </Typography>
+                      {telephone}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Typography className="font-bold">Taille </Typography>
+                      {taille} cm
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Typography className="font-bold">Poids </Typography>
+                      {poids} kg
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Typography className="font-bold">Age </Typography>
+                      {age} ans
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <Button className="mt-2" color="blue" variant="outlined">
+                        <span className="font-bold">Historique</span>
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </CardHeader>
-        <CardBody className="overflow-scroll px-0">
-          <h1 class="text-3xl mb-5">Details Consultation :</h1>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Motif Consultation
-              </label>
-              <input
-                class="appearance-none block w-full bg-gray-200 text-gray-700 border  rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                id="grid-first-name"
-                type="text"
-                placeholder=""
-                value={motifConsultation}
-                onChange={(e) => setMotifConsultation(e.target.value)}
+
+          <div className="mb-10 pt-2 border border-white rounded-xl bg-white w-9/12 mx-auto">
+            <Typography color="blue" variant="h5">
+              Détails Consultation
+            </Typography>
+            <div className="border-t border-blue-100 mt-4"></div>
+            <div className="grid grid-cols-1 gap-4 mt-4 mx-8 pb-6">
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <Textarea
+                  label="Motif de consultation"
+                  value={motifConsultation}
+                  onChange={(e) => setMotifConsultation(e.target.value)}
+                />
+                <Textarea
+                  label="Symptômes"
+                  value={symptomes}
+                  onChange={(e) => setSymptomes(e.target.value)}
+                />
+                <Textarea
+                  label="Diagnostic"
+                  value={diagnostic}
+                  onChange={(e) => setDiagnostic(e.target.value)}
+                />
+                <Textarea
+                  label="Antécédents médicaux"
+                  value={antecedentsMedicaux}
+                  onChange={(e) => setAntecedentsMedicaux(e.target.value)}
+                />
+                <Textarea
+                  label="Antécédents chirurgicaux"
+                  value={antecedentsChirurgicaux}
+                  onChange={(e) => setAntecedentsChirurgicaux(e.target.value)}
+                />
+                <Textarea
+                  label="Antécédents familiaux"
+                  value={antecedentsFamiliaux}
+                  onChange={(e) => setAntecedentsFamiliaux(e.target.value)}
+                />
+                <Textarea
+                  label="Antécédents allergiques"
+                  value={antecedentsAllergiques}
+                  onChange={(e) => setAntecedentsAllergiques(e.target.value)}
+                />
+                <Textarea
+                  label="Traitements de longue durée en cours"
+                  value={traitementsLongueDuree}
+                  onChange={(e) => setTraitementsLongueDuree(e.target.value)}
+                />
+              </div>
+              <Textarea
+                label="Notes supplémentaires"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
-              {/* <p class="text-gray-600 text-xs italic">Make it as long and as crazy as you'd like</p> */}
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Examen Clinique
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">Choisir</option>
-                <option value="">Examen 1</option>
-                <option value="">Examen 2</option>
-                <option value="">Examen 3</option>
-                <option value="">Examen 4</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Resultat de l'examen clinique
-              </label>
-              <textarea
-                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-password"
-                type="text"
-              ></textarea>
-
-              {/* <textarea class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-password" type="text" ></textarea> */}
-              {/* <p class="text-gray-600 text-xs italic">Make it as long and as crazy as you'd like</p> */}
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Resultat de l'examen paraclinique
-              </label>
-              <textarea
-                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-password"
-                type="text"
-              ></textarea>
-              {/* <p class="text-gray-600 text-xs italic">Make it as long and as crazy as you'd like</p> */}
-            </div>
-          </div>
-
-          <div class="grid grid-cols-7 gap-2">
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                DiabÃ©te
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                HTA
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Tabac
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Ac . urique
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                Alcool
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                DysliploÃ©mie
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
-                for="grid-password"
-              >
-                ObÃ©sitÃ©
-              </label>
-              <select
-                name="roler"
-                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                id="grid-state"
-              >
-                <option value="">choisir</option>
-                <option value="">Oui</option>
-                <option value="">Non</option>
-              </select>
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <Select
+                  label="Diabète"
+                  value={diabete}
+                  onChange={(e) => setDiabete(e.target.value)}
+                >
+                  <Option>Oui</Option>
+                  <Option>Non</Option>
+                </Select>
+                <Select
+                  label="HTA"
+                  value={hta}
+                  onChange={(e) => setHta(e.target.value)}
+                >
+                  <Option>Oui</Option>
+                  <Option>Non</Option>
+                </Select>
+                <Select
+                  label="Tabac"
+                  value={tabac}
+                  onChange={(e) => setTabac(e.target.value)}
+                >
+                  <Option>Oui</Option>
+                  <Option>Non</Option>
+                </Select>
+                <Select
+                  label="Alcool"
+                  value={alcool}
+                  onChange={(e) => setAlcool(e.target.value)}
+                >
+                  <Option>Oui</Option>
+                  <Option>Non</Option>
+                </Select>
+                <Select
+                  label="Obésité"
+                  value={obesite}
+                  onChange={(e) => setObesite(e.target.value)}
+                >
+                  <Option>Oui</Option>
+                  <Option>Non</Option>
+                </Select>
+                <Select
+                  label="Acide urique"
+                  value={acideUrique}
+                  onChange={(e) => setAcideUrique(e.target.value)}
+                >
+                  <Option>Oui</Option>
+                  <Option>Non</Option>
+                </Select>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-2"></div>
-          <div
-            className="w-full bg-white shadow-md rounded-md p-8 flex flex-col items-start"
-            ref={contentRef}
-          >
-            <h1 className="text-2xl font-bold mb-4">Consultation :</h1>
-            <p className="text-lg mb-4">
-              <b>Motif de consultation: </b>
-              {motifConsultation}
-            </p>
-            <p className="text-lg">exemplesdkjnsjkdnfskdnkjsndfk</p>
+          <div className="mb-16 pt-4 pb-6  border border-white rounded-xl bg-white w-9/12 mx-auto">
+            <Typography color="blue" variant="h5">
+              Détails du Traitement
+            </Typography>
+            <div className="border-t border-blue-100 mt-4"></div>
+
+            <div className="space-y-8 mt-6 mx-auto w-9/12">
+              {traitements.map((traitement, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 border p-4 rounded-md"
+                >
+                  <Input
+                    label={`Traitement ${index + 1}`}
+                    value={traitement.medicament}
+                    onChange={(e) =>
+                      handleTraitementChange(
+                        index,
+                        "medicament",
+                        e.target.value
+                      )
+                    }
+                    className="flex-grow"
+                  />
+                  <div className="grid grid-cols-3 gap-4 w-full">
+                    <Input
+                      label="Forme Galénique"
+                      value={traitement.formeGalenique}
+                      onChange={(e) =>
+                        handleTraitementChange(
+                          index,
+                          "formeGalenique",
+                          e.target.value
+                        )
+                      }
+                      className="flex-grow"
+                    />
+                    <Input
+                      label="Dosage"
+                      value={traitement.dosage}
+                      onChange={(e) =>
+                        handleTraitementChange(index, "dosage", e.target.value)
+                      }
+                      className="flex-grow"
+                    />
+                    <Input
+                      label="Moment de prise"
+                      value={traitement.momentPrise}
+                      onChange={(e) =>
+                        handleTraitementChange(
+                          index,
+                          "momentPrise",
+                          e.target.value
+                        )
+                      }
+                      className="flex-grow"
+                    />
+                    <Select
+                      label="Avant/Après repas"
+                      value={traitement.avantApresRepas}
+                      onChange={(e) =>
+                        handleTraitementChange(
+                          index,
+                          "avantApresRepas",
+                          e.target.value
+                        )
+                      }
+                      className="flex-grow"
+                    >
+                      <Option>Avant repas</Option>
+                      <Option>Après repas</Option>
+                      <Option>Avant et après repas</Option>
+                    </Select>
+                    <Input
+                      label="Durée"
+                      value={traitement.duree}
+                      onChange={(e) =>
+                        handleTraitementChange(index, "duree", e.target.value)
+                      }
+                      className="flex-grow"
+                    />
+                    <Select
+                      label="J/S/M"
+                      value={traitement.jsm}
+                      onChange={(e) =>
+                        handleTraitementChange(index, "jsm", e.target.value)
+                      }
+                      className="flex-grow"
+                    >
+                      <Option>Jours</Option>
+                      <Option>Semaines</Option>
+                      <Option>Mois</Option>
+                    </Select>
+                  </div>
+                  <Textarea
+                    label="Remarque"
+                    value={traitement.remarque}
+                    onChange={(e) =>
+                      handleTraitementChange(index, "remarque", e.target.value)
+                    }
+                    className="flex-grow"
+                  />
+                  <IconButton
+                    color="red"
+                    onClick={() => handleRemoveTraitement(index)}
+                    className="self-start md:self-center"
+                  >
+                    <MinusCircleIcon className="h-5 w-5" />
+                  </IconButton>
+                </div>
+              ))}
+              <div className="flex justify-end mt-4 mr-4">
+                <IconButton color="green" onClick={handleAddTraitement}>
+                  <PlusCircleIcon className="h-5 w-5" />
+                </IconButton>
+              </div>
+            </div>
+
+            <div className="w-7/12 mx-auto mt-4">
+              <Textarea
+                label="Remarque Générale sur le traitement"
+                value={remarqueOrdonnance}
+                className=" flex-grow"
+                onChange={(e) => setRemarqueOrdonnance(e.target.value)}
+              />
+            </div>
           </div>
-          <button
-            className="mt-8 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            onClick={handleDownloadPDF}
-          >
-            Download PDF
-          </button>
+
+          <div className="py-2 mb-16 px-4  border-white rounded-xl bg-white w-52 mx-auto">
+            <div className="flex justify-center items-center align-middle">
+              <Input
+                label="Prix consultation"
+                value={prixConsultation}
+                onChange={(e) => setPrixConsultation(e.target.value)}
+                className="w-48"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 mb-16 flex space-x-4 justify-center align-middle items-center">
+            <Button
+              color="blue"
+              onClick={handleDownloadPDF}
+              className="w-48 h-14"
+            >
+              Visualiser l'ordonnance (PDF)
+            </Button>
+            <Button
+              color="green"
+              onClick={() => {
+                // navigate("/dashboard");
+              }}
+              className="w-48 h-14"
+            >
+              Fin de Consultation
+            </Button>
+            <Button
+              color="red"
+              onClick={() => {
+                // navigate("/home");
+              }}
+              className="w-48 h-14"
+            >
+              Annuler la Consultation
+            </Button>
+          </div>
         </CardBody>
       </Card>
     </div>

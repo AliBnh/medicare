@@ -53,7 +53,7 @@ function App() {
         <Route path="/doctor/rdv" element={<DoctorRDV />}></Route>
         <Route path="/rdv" element={<SecretaryRDV />}></Route>
         <Route
-          path="/doctor/rdv/consultation/:rdvId"
+          path="/doctor/rdv/consultation/:patientId/:rdvId"
           element={<DoctorConsultation />}
         ></Route>
       </Routes>

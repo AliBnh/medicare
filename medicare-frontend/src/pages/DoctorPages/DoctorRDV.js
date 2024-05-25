@@ -210,7 +210,6 @@ function DoctorRDV() {
     };
 
     fetchRDVs();
-    console.log(getVisibleAppointments());
   }, []);
   const searchRDV = (value) => {
     if (value === "") {
@@ -478,15 +477,16 @@ function DoctorRDV() {
                       </td>
                       <td className={classes}>
                         <Tooltip content="Consulter">
-                          <IconButton variant="text" className="ml-[-0.5rem]">
-                            <ScanEye
-                              className="h-4 w-4 text-green-500"
-                              onClick={() => {
-                                navigate(
-                                  `/doctor/rdv/consultation/${patient_id}`
-                                );
-                              }}
-                            />
+                          <IconButton
+                            variant="text"
+                            className="ml-[-0.5rem]"
+                            onClick={() => {
+                              navigate(
+                                `/doctor/rdv/consultation/${patient_id}/${id}`
+                              );
+                            }}
+                          >
+                            <ScanEye className="h-4 w-4 text-green-500" />
                           </IconButton>
                         </Tooltip>
                         <Tooltip content="Modifier RDV">
