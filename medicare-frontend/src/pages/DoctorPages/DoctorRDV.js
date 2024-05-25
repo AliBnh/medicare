@@ -271,7 +271,8 @@ function DoctorRDV() {
   const [typeEdit, setTypeEdit] = useState();
   const [patientEdit, setPatientEdit] = useState();
   const [doctorEdit, setDoctorEdit] = useState();
-  const editRdv = (id) => {
+  const [patientName, setPatientName] = useState();
+  const editRdv = (id, patient_name) => {
     setDisplayedEdit(1);
     setEditRdvId(id);
     const token = localStorage.getItem("access-token");
@@ -294,6 +295,7 @@ function DoctorRDV() {
           setTypeEdit(respone.data[0].type);
           setDoctorEdit(respone.data[0].doctor_id);
           setPatientEdit(respone.data[0].patient_id);
+          setPatientName(patient_name);
         } else {
           setRdvToEdit([]);
         }
@@ -491,7 +493,7 @@ function DoctorRDV() {
                           <IconButton
                             variant="text"
                             onClick={() => {
-                              editRdv(id);
+                              editRdv(id, patient_name);
                             }}
                             className="ml-[-0.5rem]"
                           >
@@ -567,7 +569,7 @@ function DoctorRDV() {
                             id="grid-first-name"
                             type="text"
                             disabled
-                            value={patientEdit}
+                            value={patientName}
                           />
                         </div>
                       </div>
@@ -622,7 +624,6 @@ function DoctorRDV() {
                               value={statusEdit}
                               onChange={handleStatusSelection}
                             >
-                              <option value="">Status</option>
                               {status.map((item) => (
                                 <option key={item.value} value={item.name}>
                                   {item.value}
@@ -655,7 +656,6 @@ function DoctorRDV() {
                               value={typeEdit}
                               onChange={handleTypeSelection}
                             >
-                              <option value="">Type</option>
                               {types.map((item) => (
                                 <option key={item.value} value={item.name}>
                                   {item.value}
