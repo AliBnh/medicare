@@ -17,6 +17,7 @@ import {
 import { PlusCircleIcon, MinusCircleIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { useEffect } from "react";
+
 function DoctorConsultation() {
   const { rdvId } = useParams();
   const { patientId } = useParams();
@@ -132,368 +133,46 @@ function DoctorConsultation() {
     if (remarqueOrdonnance != "")
       addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
 
-    const pdfContainer = document.createElement("div");
-    pdfContainer.innerHTML = pdfContent;
-    html2pdf().from(pdfContainer).set(opt).save();
-  };
-  const handleDownloadConsultation = () => {
-    const opt = {
-      margin: 0.5,
-      filename: `${
-        new Date().toISOString().split("T")[0]
-      }_consultation_${patientId}_${rdvId}_${doctorId}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-    };
-
-    let pdfContent = `
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 20px;
-        }
-        h1{
-          color: #2c3e50;
-          border-bottom: 2px solid #2c3e50;
-          padding-bottom: 5px;
-          margin-bottom: 20px;
-          font-size: 24px;
-        }
-        h2 {
-          color: #2c3e50;
-          border-bottom: 2px solid #2c3e50;
-          padding-bottom: 5px;
-          margin-top: 20px;
-        }
-        h3 {
-          color: #2c3e50;
-          margin-top: 10px;
-          margin-bottom: 10px;
-          font-size: 16px;
-        }
-        h4 {
-          color: #2c3e50;
-          margin-top: 5px;
-          margin-bottom: 5px;
-          font-size: 14px;
-        }
-        .traitement-info {
-          display: flex;
-          flex-wrap: wrap;
-          line-height: 1.2;
-          margin-bottom: 10px;
-        }
-        .traitement-info div {
-          flex: 1 1 50%;
-          min-width: 200px;
-          margin-bottom: 5px;
-        }
-        .section-divider {
-          border-top: 2px solid #2c3e50;
-          margin: 15px 0;
-        }
-      </style>
-    `;
-
-    const formattedDate = new Date().toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-
-    pdfContent += `<h1>Consultation le ${formattedDate}</h1>`;
-    const addSection = (title, value) => {
-      if (value && value.trim() !== "" && value !== "null") {
-        pdfContent += `<div class="traitement-info"><div><strong>${title}: </strong> ${value}</div></div>`;
-      }
-    };
-
-    pdfContent += `<h2>Informations Patient</h2>`;
-    pdfContent += `
-      <div class="single-line">
-        <div><strong>Nom:</strong> ${firstName} ${lastName}</div>
-        <div><strong>Téléphone:</strong> ${telephone}</div>
-        <div><strong>Taille:</strong> ${taille} cm</div>
-        <div><strong>Poids:</strong> ${poids} kg</div>
-        <div><strong>Age:</strong> ${age} ans</div>
-      </div>
-    `;
-
-    pdfContent += `<h2>Détails Consultation</h2>`;
-    if (motifConsultation != "")
-      pdfContent += `<div><strong>Motif de consultation:</strong> ${motifConsultation}</div>`;
-    if (symptomes != "")
-      pdfContent += `<div><strong>Symptômes:</strong> ${symptomes}</div>`;
-    if (diagnostic != "")
-      pdfContent += `<div><strong>Diagnostic:</strong> ${diagnostic}</div>`;
-    if (antecedentsMedicaux != "")
-      pdfContent += `<div><strong>Antécédents Médicaux:</strong> ${antecedentsMedicaux}</div>`;
-    if (antecedentsChirurgicaux != "")
-      pdfContent += `<div><strong>Antécédents Chirurgicaux:</strong> ${antecedentsChirurgicaux}</div>`;
-    if (antecedentsFamiliaux != "")
-      pdfContent += `<div><strong>Antécédents Familiaux:</strong> ${antecedentsFamiliaux}</div>`;
-    if (antecedentsAllergiques != "")
-      pdfContent += `<div><strong>Antécédents Allergiques:</strong> ${antecedentsAllergiques}</div>`;
-    if (diabete != "null")
-      pdfContent += `<div><strong>Diabète:</strong> ${
-        diabete === "true" ? "Oui" : "Non"
-      }</div>`;
-    if (hta != "null")
-      pdfContent += `<div><strong>HTA:</strong> ${
-        hta === "true" ? "Oui" : "Non"
-      }</div>`;
-    if (obesite != "null")
-      pdfContent += `<div><strong>Obésité:</strong> ${
-        obesite === "true" ? "Oui" : "Non"
-      }</div>`;
-    if (acideUrique != "null")
-      pdfContent += `<div><strong>Acide Urique:</strong> ${
-        acideUrique === "true" ? "Oui" : "Non"
-      }</div>`;
-    if (tabac != "null")
-      pdfContent += `<div><strong>Tabac:</strong> ${
-        tabac === "true" ? "Oui" : "Non"
-      }</div>`;
-    if (alcool != "null")
-      pdfContent += `<div><strong>Alcool:</strong> ${
-        alcool === "true" ? "Oui" : "Non"
-      }</div>`;
-    if (traitementsLongueDuree != "")
-      pdfContent += `<div><strong>Traitements de Longue Durée:</strong> ${traitementsLongueDuree}</div>`;
-    if (notes != "")
-      pdfContent += `<div><strong>Notes Supplémentaires:</strong> ${notes}</div>`;
-
-    pdfContent += `<h2>Détails du Traitement</h2>`;
-    const addTraitement = (traitement, index) => {
-      const {
-        medicament,
-        formeGalenique,
-        dosage,
-        momentPrise,
-        avantApresRepas,
-        duree,
-        jsm,
-        remarque,
-      } = traitement;
-      if (medicament && medicament.trim() !== "") {
-        pdfContent += `<h4>Traitement ${index + 1}</h4>`;
-        pdfContent += `<div class="traitement-info">`;
-        addSection("Médicament", medicament);
-        addSection("Dosage", dosage + " " + formeGalenique);
-        if (momentPrise != "") addSection("Moment de Prise", momentPrise);
-        if (avantApresRepas != "null")
-          addSection("Avant/Après Repas", avantApresRepas);
-        addSection("Durée", duree + " " + jsm);
-        if (remarque != "") addSection("Remarque", remarque);
-        pdfContent += `</div><div class="section-divider"></div>`;
-      }
-    };
-
-    traitements.forEach((traitement, index) => {
-      addTraitement(traitement, index);
-    });
-    if (remarqueOrdonnance != "")
-      addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
+    // const pdfContainer = document.createElement("div");
+    // pdfContainer.innerHTML = pdfContent;
+    // html2pdf().from(pdfContainer).set(opt).save();
 
     const pdfContainer = document.createElement("div");
     pdfContainer.innerHTML = pdfContent;
     html2pdf().from(pdfContainer).set(opt).save();
+    html2pdf()
+      .from(pdfContainer)
+      .set(opt)
+      .outputPdf("datauristring")
+      .then((pdfDataUri) => {
+        const base64Pdf = pdfDataUri.split(",")[1];
+        axios
+          .post(
+            "http://localhost:3002/documents",
+            {
+              document: base64Pdf,
+              type: "prescription",
+              doctor_id: doctorId,
+              appointment_id: rdvId,
+              patient_id: id,
+            },
+            {
+              headers: {
+                "access-token": localStorage.getItem("access-token"),
+                "clinic-database": localStorage.getItem("clinic-database"),
+                role: "doctor",
+              },
+            }
+          )
+          .then((response) => {
+            // navigate
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
   };
-  // const handleDownloadConsultationDB = () => {
-  //   const opt = {
-  //     margin: 0.5,
-  //     filename: `${new Date().toISOString().split("T")[0]}_consultation.pdf`,
-  //     image: { type: "jpeg", quality: 0.98 },
-  //     html2canvas: { scale: 2 },
-  //     jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-  //   };
 
-  //   let pdfContent = `
-  //     <style>
-  //       body {
-  //         font-family: Arial, sans-serif;
-  //         margin: 20px;
-  //       }
-  //       h1{
-  //         color: #2c3e50;
-  //         border-bottom: 2px solid #2c3e50;
-  //         padding-bottom: 5px;
-  //         margin-bottom: 20px;
-  //         font-size: 24px;
-  //       }
-  //       h2 {
-  //         color: #2c3e50;
-  //         border-bottom: 2px solid #2c3e50;
-  //         padding-bottom: 5px;
-  //         margin-top: 20px;
-  //       }
-  //       h3 {
-  //         color: #2c3e50;
-  //         margin-top: 10px;
-  //         margin-bottom: 10px;
-  //         font-size: 16px;
-  //       }
-  //       h4 {
-  //         color: #2c3e50;
-  //         margin-top: 5px;
-  //         margin-bottom: 5px;
-  //         font-size: 14px;
-  //       }
-  //       .traitement-info {
-  //         display: flex;
-  //         flex-wrap: wrap;
-  //         line-height: 1.2;
-  //         margin-bottom: 10px;
-  //       }
-  //       .traitement-info div {
-  //         flex: 1 1 50%;
-  //         min-width: 200px;
-  //         margin-bottom: 5px;
-  //       }
-  //       .section-divider {
-  //         border-top: 2px solid #2c3e50;
-  //         margin: 15px 0;
-  //       }
-  //     </style>
-  //   `;
-
-  //   const formattedDate = new Date().toLocaleDateString("fr-FR", {
-  //     day: "2-digit",
-  //     month: "2-digit",
-  //     year: "numeric",
-  //   });
-
-  //   pdfContent += `<h1>Consultation le ${formattedDate}</h1>`;
-  //   const addSection = (title, value) => {
-  //     if (value && value.trim() !== "" && value !== "null") {
-  //       pdfContent += `<div class="traitement-info"><div><strong>${title}: </strong> ${value}</div></div>`;
-  //     }
-  //   };
-
-  //   pdfContent += `<h2>Informations Patient</h2>`;
-  //   pdfContent += `
-  //     <div class="single-line">
-  //       <div><strong>Nom:</strong> ${firstName} ${lastName}</div>
-  //       <div><strong>Téléphone:</strong> ${telephone}</div>
-  //       <div><strong>Taille:</strong> ${taille} cm</div>
-  //       <div><strong>Poids:</strong> ${poids} kg</div>
-  //       <div><strong>Age:</strong> ${age} ans</div>
-  //     </div>
-  //   `;
-
-  //   pdfContent += `<h2>Détails Consultation</h2>`;
-  //   if (motifConsultation != "")
-  //     pdfContent += `<div><strong>Motif de consultation:</strong> ${motifConsultation}</div>`;
-  //   if (symptomes != "")
-  //     pdfContent += `<div><strong>Symptômes:</strong> ${symptomes}</div>`;
-  //   if (diagnostic != "")
-  //     pdfContent += `<div><strong>Diagnostic:</strong> ${diagnostic}</div>`;
-  //   if (antecedentsMedicaux != "")
-  //     pdfContent += `<div><strong>Antécédents Médicaux:</strong> ${antecedentsMedicaux}</div>`;
-  //   if (antecedentsChirurgicaux != "")
-  //     pdfContent += `<div><strong>Antécédents Chirurgicaux:</strong> ${antecedentsChirurgicaux}</div>`;
-  //   if (antecedentsFamiliaux != "")
-  //     pdfContent += `<div><strong>Antécédents Familiaux:</strong> ${antecedentsFamiliaux}</div>`;
-  //   if (antecedentsAllergiques != "")
-  //     pdfContent += `<div><strong>Antécédents Allergiques:</strong> ${antecedentsAllergiques}</div>`;
-  //   if (diabete != "null")
-  //     pdfContent += `<div><strong>Diabète:</strong> ${
-  //       diabete === "true" ? "Oui" : "Non"
-  //     }</div>`;
-  //   if (hta != "null")
-  //     pdfContent += `<div><strong>HTA:</strong> ${
-  //       hta === "true" ? "Oui" : "Non"
-  //     }</div>`;
-  //   if (obesite != "null")
-  //     pdfContent += `<div><strong>Obésité:</strong> ${
-  //       obesite === "true" ? "Oui" : "Non"
-  //     }</div>`;
-  //   if (acideUrique != "null")
-  //     pdfContent += `<div><strong>Acide Urique:</strong> ${
-  //       acideUrique === "true" ? "Oui" : "Non"
-  //     }</div>`;
-  //   if (tabac != "null")
-  //     pdfContent += `<div><strong>Tabac:</strong> ${
-  //       tabac === "true" ? "Oui" : "Non"
-  //     }</div>`;
-  //   if (alcool != "null")
-  //     pdfContent += `<div><strong>Alcool:</strong> ${
-  //       alcool === "true" ? "Oui" : "Non"
-  //     }</div>`;
-  //   if (traitementsLongueDuree != "")
-  //     pdfContent += `<div><strong>Traitements de Longue Durée:</strong> ${traitementsLongueDuree}</div>`;
-  //   if (notes != "")
-  //     pdfContent += `<div><strong>Notes Supplémentaires:</strong> ${notes}</div>`;
-
-  //   pdfContent += `<h2>Détails du Traitement</h2>`;
-  //   const addTraitement = (traitement, index) => {
-  //     const {
-  //       medicament,
-  //       formeGalenique,
-  //       dosage,
-  //       momentPrise,
-  //       avantApresRepas,
-  //       duree,
-  //       jsm,
-  //       remarque,
-  //     } = traitement;
-  //     if (medicament && medicament.trim() !== "") {
-  //       pdfContent += `<h4>Traitement ${index + 1}</h4>`;
-  //       pdfContent += `<div class="traitement-info">`;
-  //       addSection("Médicament", medicament);
-  //       addSection("Dosage", dosage + " " + formeGalenique);
-  //       if (momentPrise != "") addSection("Moment de Prise", momentPrise);
-  //       if (avantApresRepas != "null")
-  //         addSection("Avant/Après Repas", avantApresRepas);
-  //       addSection("Durée", duree + " " + jsm);
-  //       if (remarque != "") addSection("Remarque", remarque);
-  //       pdfContent += `</div><div class="section-divider"></div>`;
-  //     }
-  //   };
-
-  //   traitements.forEach((traitement, index) => {
-  //     addTraitement(traitement, index);
-  //   });
-  //   if (remarqueOrdonnance != "")
-  //     addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
-
-  //   const pdfContainer = document.createElement("div");
-  //   pdfContainer.innerHTML = pdfContent;
-  //   html2pdf().from(pdfContainer).set(opt).save();
-  //   html2pdf()
-  //     .from(pdfContainer)
-  //     .set(opt)
-  //     .outputPdf("datauristring")
-  //     .then((pdfDataUri) => {
-  //       const base64Pdf = pdfDataUri.split(",")[1];
-  //       axios
-  //         .post(
-  //           "http://localhost:3002/documents",
-  //           {
-  //             document: base64Pdf,
-  //             type: "consultation",
-  //             doctor_id: patientId,
-  //             appointment_id: rdvId,
-  //             patient_id: id,
-  //           },
-  //           {
-  //             headers: {
-  //               "access-token": localStorage.getItem("access-token"),
-  //               "clinic-database": localStorage.getItem("clinic-database"),
-  //               role: "doctor",
-  //             },
-  //           }
-  //         )
-  //         .then((response) => {
-  //           console.log(response);
-  //           //navigate
-  //         })
-  //         .catch((error) => {
-  //           console.error(error);
-  //         });
-  //     });
-  // };
   const handleDownloadConsultationDB = () => {
     const opt = {
       margin: 0.5,
@@ -682,8 +361,12 @@ function DoctorConsultation() {
             }
           )
           .then((response) => {
-            console.log(response);
-            // navigate
+            navigate("/doctor/rdv");
+            if (
+              traitements.length > 0 ||
+              !(traitements.length == 1 && traitements.jsm !== "null")
+            )
+              handleDownloadOrdonance();
           })
           .catch((error) => {
             console.error(error);
@@ -842,7 +525,14 @@ function DoctorConsultation() {
                       {age} ans
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <Button className="mt-2" color="blue" variant="outlined">
+                      <Button
+                        onClick={() => {
+                          navigate(`/patient/documents/${patientId}`);
+                        }}
+                        className="mt-2"
+                        color="blue"
+                        variant="outlined"
+                      >
                         <span className="font-bold">Historique</span>
                       </Button>
                     </td>
@@ -1132,7 +822,7 @@ function DoctorConsultation() {
             <Button
               color="red"
               onClick={() => {
-                // navigate("/home");
+                navigate("/doctor/rdv");
               }}
               className="w-48 h-14"
             >

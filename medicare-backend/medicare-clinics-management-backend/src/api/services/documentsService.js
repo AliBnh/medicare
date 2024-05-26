@@ -24,25 +24,19 @@ exports.getDocuments = (clinicDbName, role, id) => {
   });
 };
 
-exports.getDocument = (clinicDbName, role, id, documentId) => {
+exports.getDocumentsByPatient = (clinicDbName, patientId) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
-    let query = "SELECT * FROM Documents WHERE id = ? AND doctor_id = ?";
-    let queryParams = [documentId, id];
+    const query =
+      "SELECT id, type, appointment_id, doctor_id, date, document,patient_id FROM Documents WHERE patient_id = ?";
+    const queryParams = [patientId];
 
-    if (role === "admin" || role === "secretary") {
-      query = "SELECT * FROM Documents WHERE id = ?";
-      queryParams = [documentId];
-    } else if (role !== "doctor") {
-      return reject("Unauthorized");
-    }
-
-    pool.query(query, queryParams, (err, result) => {
+    pool.query(query, queryParams, (err, results) => {
       if (err) {
         reject(err);
       } else {
-        resolve(result[0]);
+        resolve(results);
       }
     });
   });
@@ -52,10 +46,15 @@ exports.createDocument = (clinicDbName, document) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
     const todayDate = new Date().toISOString().slice(0, 10);
+    const filename = `${new Date().toISOString().split("T")[0]}_${
+      document.type
+    }_${document.patient_id}_${document.doctor_id}_${
+      document.appointment_id
+    }.pdf`;
     const query =
       "INSERT INTO Documents (document, type, appointment_id, doctor_id, patient_id,date) VALUES (?, ?, ?, ?, ?,?)";
     const queryParams = [
-      document.document,
+      filename,
       document.type,
       document.appointment_id,
       document.doctor_id,
@@ -72,25 +71,28 @@ exports.createDocument = (clinicDbName, document) => {
   });
 };
 
-exports.deleteDocument = (clinicDbName, role, id, documentId) => {
+exports.deleteDocument = (clinicDbName, documentId) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
-    let query = "DELETE FROM Documents WHERE id = ? AND doctor_id = ?";
-    let queryParams = [documentId, id];
+    const getDocumentQuery = "SELECT document FROM Documents WHERE id = ?";
+    const deleteDocumentQuery = "DELETE FROM Documents WHERE id = ?";
+    const queryParams = [documentId];
 
-    if (role === "admin" || role === "secretary") {
-      query = "DELETE FROM Documents WHERE id = ?";
-      queryParams = [documentId];
-    } else if (role !== "doctor") {
-      return reject("Unauthorized");
-    }
-
-    pool.query(query, queryParams, (err, result) => {
+    pool.query(getDocumentQuery, queryParams, (err, results) => {
       if (err) {
         reject(err);
+      } else if (results.length === 0) {
+        resolve(false);
       } else {
-        resolve(result);
+        const filename = results[0].document;
+        pool.query(deleteDocumentQuery, queryParams, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ affectedRows: result.affectedRows > 0, filename });
+          }
+        });
       }
     });
   });

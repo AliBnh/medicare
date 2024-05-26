@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { SidebarItem } from "../../components/Sidebar/Sidebar";
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Link,
+  redirect,
+} from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
   WalletMinimal,
@@ -436,6 +441,9 @@ function DoctorPatients() {
     setSelectedPrenom(selectedPrenom);
     setIsAddDisplayed(1);
   };
+  const redirectToDocumentsPage = (id) => {
+    navigate(`/patient/documents/${id}`);
+  };
 
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
@@ -580,16 +588,20 @@ function DoctorPatients() {
                               handleBtnAddRdv(id, last_name, first_name)
                             }
                             variant="text"
-                            className="ml-[-1.5rem]"
+                            className="ml-[-2.5rem]"
                           >
                             <PlusCircle className="h-4 w-4 text-green-400" />
                           </IconButton>
                         </Tooltip>
-                        {/* <Tooltip content="Informations">
-                          <IconButton variant="text" className="ml-[-0.5rem]">
+                        <Tooltip content="Informations">
+                          <IconButton
+                            onClick={() => redirectToDocumentsPage(id)}
+                            variant="text"
+                            className="ml-[-0.5rem]"
+                          >
                             <BadgeInfo className="h-4 w-4 text-gray-700" />
                           </IconButton>
-                        </Tooltip> */}
+                        </Tooltip>
                         <Tooltip content="Modifier patient">
                           <IconButton
                             variant="text"

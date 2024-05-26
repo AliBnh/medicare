@@ -1,0 +1,38 @@
+.button-group .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 2px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.button-group .btn:hover {
+  transform: scale(1.1);
+}
+
+.button-group .btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.button-group .btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.button-group .btn-visualize {
+  color: #3498db;
+  border: 1px solid #3498db;
+}
+
+.button-group .btn-download {
+  color: #2ecc71;
+  border: 1px solid #2ecc71;
+}
+
+.button-group .btn-delete {
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
