@@ -246,7 +246,7 @@ function DoctorPatients() {
     fetchUsers();
   }, []);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7;
+  const itemsPerPage = 6;
   const totalPages = Math.ceil(users?.length / itemsPerPage) || 1;
   const handlePageChange = (page) => {
     setCurrentPage(page);
