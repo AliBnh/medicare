@@ -10,8 +10,6 @@ import {
   CardBody,
   Typography,
   Input,
-  Select,
-  Option,
   Button,
   Textarea,
   IconButton,
@@ -24,16 +22,673 @@ function DoctorConsultation() {
   const { patientId } = useParams();
   const navigate = useNavigate();
   const contentRef = useRef(null);
+  const doctorId = localStorage.getItem("id");
 
-  const handleDownloadPDF = () => {
+  const handleDownloadOrdonance = () => {
     const opt = {
-      margin: 0,
-      filename: "consultation.pdf",
+      margin: 0.5,
+      filename: `${
+        new Date().toISOString().split("T")[0]
+      }_ordonance_${patientId}_${rdvId}_${doctorId}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
     };
-    html2pdf().from(contentRef.current).set(opt).save();
+
+    let pdfContent = `
+      <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1{
+        color: #2c3e50;
+        border-bottom: 2px solid #2c3e50;
+        padding-bottom: 5px;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+      h2 {
+        color: #2c3e50;
+        border-bottom: 2px solid #2c3e50;
+        padding-bottom: 5px;
+        margin-top: 20px;
+      }
+      h3 {
+        color: #2c3e50;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+      h4 {
+        color: #2c3e50;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        font-size: 14px;
+      }
+      .traitement-info {
+        display: flex;
+        flex-wrap: wrap;
+        line-height: 1.2;
+        margin-bottom: 10px;
+      }
+      .traitement-info div {
+        flex: 1 1 50%;
+        min-width: 200px;
+        margin-bottom: 5px;
+      }
+      .section-divider {
+        border-top: 2px solid #2c3e50;
+        margin: 15px 0;
+      }
+      </style>
+    `;
+
+    const formattedDate = new Date().toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    pdfContent += `<h1>Ordonnance le ${formattedDate}</h1>`;
+    pdfContent += `<p>${lastName + " " + firstName}</p>`;
+
+    const addSection = (title, value) => {
+      if (value && value.trim() !== "" && value !== "null") {
+        pdfContent += `<div class="traitement-info"><div><strong>${title}: </strong> ${value}</div></div>`;
+      }
+    };
+
+    const addTraitement = (traitement, index) => {
+      const {
+        medicament,
+        formeGalenique,
+        dosage,
+        momentPrise,
+        avantApresRepas,
+        duree,
+        jsm,
+        remarque,
+      } = traitement;
+      if (medicament && medicament.trim() !== "") {
+        pdfContent += `<h4>Traitement ${index + 1}</h4>`;
+        pdfContent += `<div class="traitement-info">`;
+        addSection("Médicament", medicament);
+        addSection("Dosage", dosage + " " + formeGalenique);
+        if (momentPrise != "") addSection("Moment de Prise", momentPrise);
+        if (avantApresRepas != "null")
+          addSection("Avant/Après Repas", avantApresRepas);
+        addSection("Durée", duree + " " + jsm);
+        if (remarque != "") addSection("Remarque", remarque);
+        pdfContent += `</div><div class="section-divider"></div>`;
+      }
+    };
+
+    pdfContent += `<h3>Détails du Traitement</h3>`;
+    traitements.forEach((traitement, index) => {
+      addTraitement(traitement, index);
+    });
+
+    if (remarqueOrdonnance != "")
+      addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
+
+    const pdfContainer = document.createElement("div");
+    pdfContainer.innerHTML = pdfContent;
+    html2pdf().from(pdfContainer).set(opt).save();
+  };
+  const handleDownloadConsultation = () => {
+    const opt = {
+      margin: 0.5,
+      filename: `${
+        new Date().toISOString().split("T")[0]
+      }_consultation_${patientId}_${rdvId}_${doctorId}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    };
+
+    let pdfContent = `
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+        }
+        h1{
+          color: #2c3e50;
+          border-bottom: 2px solid #2c3e50;
+          padding-bottom: 5px;
+          margin-bottom: 20px;
+          font-size: 24px;
+        }
+        h2 {
+          color: #2c3e50;
+          border-bottom: 2px solid #2c3e50;
+          padding-bottom: 5px;
+          margin-top: 20px;
+        }
+        h3 {
+          color: #2c3e50;
+          margin-top: 10px;
+          margin-bottom: 10px;
+          font-size: 16px;
+        }
+        h4 {
+          color: #2c3e50;
+          margin-top: 5px;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        .traitement-info {
+          display: flex;
+          flex-wrap: wrap;
+          line-height: 1.2;
+          margin-bottom: 10px;
+        }
+        .traitement-info div {
+          flex: 1 1 50%;
+          min-width: 200px;
+          margin-bottom: 5px;
+        }
+        .section-divider {
+          border-top: 2px solid #2c3e50;
+          margin: 15px 0;
+        }
+      </style>
+    `;
+
+    const formattedDate = new Date().toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    pdfContent += `<h1>Consultation le ${formattedDate}</h1>`;
+    const addSection = (title, value) => {
+      if (value && value.trim() !== "" && value !== "null") {
+        pdfContent += `<div class="traitement-info"><div><strong>${title}: </strong> ${value}</div></div>`;
+      }
+    };
+
+    pdfContent += `<h2>Informations Patient</h2>`;
+    pdfContent += `
+      <div class="single-line">
+        <div><strong>Nom:</strong> ${firstName} ${lastName}</div>
+        <div><strong>Téléphone:</strong> ${telephone}</div>
+        <div><strong>Taille:</strong> ${taille} cm</div>
+        <div><strong>Poids:</strong> ${poids} kg</div>
+        <div><strong>Age:</strong> ${age} ans</div>
+      </div>
+    `;
+
+    pdfContent += `<h2>Détails Consultation</h2>`;
+    if (motifConsultation != "")
+      pdfContent += `<div><strong>Motif de consultation:</strong> ${motifConsultation}</div>`;
+    if (symptomes != "")
+      pdfContent += `<div><strong>Symptômes:</strong> ${symptomes}</div>`;
+    if (diagnostic != "")
+      pdfContent += `<div><strong>Diagnostic:</strong> ${diagnostic}</div>`;
+    if (antecedentsMedicaux != "")
+      pdfContent += `<div><strong>Antécédents Médicaux:</strong> ${antecedentsMedicaux}</div>`;
+    if (antecedentsChirurgicaux != "")
+      pdfContent += `<div><strong>Antécédents Chirurgicaux:</strong> ${antecedentsChirurgicaux}</div>`;
+    if (antecedentsFamiliaux != "")
+      pdfContent += `<div><strong>Antécédents Familiaux:</strong> ${antecedentsFamiliaux}</div>`;
+    if (antecedentsAllergiques != "")
+      pdfContent += `<div><strong>Antécédents Allergiques:</strong> ${antecedentsAllergiques}</div>`;
+    if (diabete != "null")
+      pdfContent += `<div><strong>Diabète:</strong> ${
+        diabete === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (hta != "null")
+      pdfContent += `<div><strong>HTA:</strong> ${
+        hta === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (obesite != "null")
+      pdfContent += `<div><strong>Obésité:</strong> ${
+        obesite === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (acideUrique != "null")
+      pdfContent += `<div><strong>Acide Urique:</strong> ${
+        acideUrique === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (tabac != "null")
+      pdfContent += `<div><strong>Tabac:</strong> ${
+        tabac === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (alcool != "null")
+      pdfContent += `<div><strong>Alcool:</strong> ${
+        alcool === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (traitementsLongueDuree != "")
+      pdfContent += `<div><strong>Traitements de Longue Durée:</strong> ${traitementsLongueDuree}</div>`;
+    if (notes != "")
+      pdfContent += `<div><strong>Notes Supplémentaires:</strong> ${notes}</div>`;
+
+    pdfContent += `<h2>Détails du Traitement</h2>`;
+    const addTraitement = (traitement, index) => {
+      const {
+        medicament,
+        formeGalenique,
+        dosage,
+        momentPrise,
+        avantApresRepas,
+        duree,
+        jsm,
+        remarque,
+      } = traitement;
+      if (medicament && medicament.trim() !== "") {
+        pdfContent += `<h4>Traitement ${index + 1}</h4>`;
+        pdfContent += `<div class="traitement-info">`;
+        addSection("Médicament", medicament);
+        addSection("Dosage", dosage + " " + formeGalenique);
+        if (momentPrise != "") addSection("Moment de Prise", momentPrise);
+        if (avantApresRepas != "null")
+          addSection("Avant/Après Repas", avantApresRepas);
+        addSection("Durée", duree + " " + jsm);
+        if (remarque != "") addSection("Remarque", remarque);
+        pdfContent += `</div><div class="section-divider"></div>`;
+      }
+    };
+
+    traitements.forEach((traitement, index) => {
+      addTraitement(traitement, index);
+    });
+    if (remarqueOrdonnance != "")
+      addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
+
+    const pdfContainer = document.createElement("div");
+    pdfContainer.innerHTML = pdfContent;
+    html2pdf().from(pdfContainer).set(opt).save();
+  };
+  // const handleDownloadConsultationDB = () => {
+  //   const opt = {
+  //     margin: 0.5,
+  //     filename: `${new Date().toISOString().split("T")[0]}_consultation.pdf`,
+  //     image: { type: "jpeg", quality: 0.98 },
+  //     html2canvas: { scale: 2 },
+  //     jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+  //   };
+
+  //   let pdfContent = `
+  //     <style>
+  //       body {
+  //         font-family: Arial, sans-serif;
+  //         margin: 20px;
+  //       }
+  //       h1{
+  //         color: #2c3e50;
+  //         border-bottom: 2px solid #2c3e50;
+  //         padding-bottom: 5px;
+  //         margin-bottom: 20px;
+  //         font-size: 24px;
+  //       }
+  //       h2 {
+  //         color: #2c3e50;
+  //         border-bottom: 2px solid #2c3e50;
+  //         padding-bottom: 5px;
+  //         margin-top: 20px;
+  //       }
+  //       h3 {
+  //         color: #2c3e50;
+  //         margin-top: 10px;
+  //         margin-bottom: 10px;
+  //         font-size: 16px;
+  //       }
+  //       h4 {
+  //         color: #2c3e50;
+  //         margin-top: 5px;
+  //         margin-bottom: 5px;
+  //         font-size: 14px;
+  //       }
+  //       .traitement-info {
+  //         display: flex;
+  //         flex-wrap: wrap;
+  //         line-height: 1.2;
+  //         margin-bottom: 10px;
+  //       }
+  //       .traitement-info div {
+  //         flex: 1 1 50%;
+  //         min-width: 200px;
+  //         margin-bottom: 5px;
+  //       }
+  //       .section-divider {
+  //         border-top: 2px solid #2c3e50;
+  //         margin: 15px 0;
+  //       }
+  //     </style>
+  //   `;
+
+  //   const formattedDate = new Date().toLocaleDateString("fr-FR", {
+  //     day: "2-digit",
+  //     month: "2-digit",
+  //     year: "numeric",
+  //   });
+
+  //   pdfContent += `<h1>Consultation le ${formattedDate}</h1>`;
+  //   const addSection = (title, value) => {
+  //     if (value && value.trim() !== "" && value !== "null") {
+  //       pdfContent += `<div class="traitement-info"><div><strong>${title}: </strong> ${value}</div></div>`;
+  //     }
+  //   };
+
+  //   pdfContent += `<h2>Informations Patient</h2>`;
+  //   pdfContent += `
+  //     <div class="single-line">
+  //       <div><strong>Nom:</strong> ${firstName} ${lastName}</div>
+  //       <div><strong>Téléphone:</strong> ${telephone}</div>
+  //       <div><strong>Taille:</strong> ${taille} cm</div>
+  //       <div><strong>Poids:</strong> ${poids} kg</div>
+  //       <div><strong>Age:</strong> ${age} ans</div>
+  //     </div>
+  //   `;
+
+  //   pdfContent += `<h2>Détails Consultation</h2>`;
+  //   if (motifConsultation != "")
+  //     pdfContent += `<div><strong>Motif de consultation:</strong> ${motifConsultation}</div>`;
+  //   if (symptomes != "")
+  //     pdfContent += `<div><strong>Symptômes:</strong> ${symptomes}</div>`;
+  //   if (diagnostic != "")
+  //     pdfContent += `<div><strong>Diagnostic:</strong> ${diagnostic}</div>`;
+  //   if (antecedentsMedicaux != "")
+  //     pdfContent += `<div><strong>Antécédents Médicaux:</strong> ${antecedentsMedicaux}</div>`;
+  //   if (antecedentsChirurgicaux != "")
+  //     pdfContent += `<div><strong>Antécédents Chirurgicaux:</strong> ${antecedentsChirurgicaux}</div>`;
+  //   if (antecedentsFamiliaux != "")
+  //     pdfContent += `<div><strong>Antécédents Familiaux:</strong> ${antecedentsFamiliaux}</div>`;
+  //   if (antecedentsAllergiques != "")
+  //     pdfContent += `<div><strong>Antécédents Allergiques:</strong> ${antecedentsAllergiques}</div>`;
+  //   if (diabete != "null")
+  //     pdfContent += `<div><strong>Diabète:</strong> ${
+  //       diabete === "true" ? "Oui" : "Non"
+  //     }</div>`;
+  //   if (hta != "null")
+  //     pdfContent += `<div><strong>HTA:</strong> ${
+  //       hta === "true" ? "Oui" : "Non"
+  //     }</div>`;
+  //   if (obesite != "null")
+  //     pdfContent += `<div><strong>Obésité:</strong> ${
+  //       obesite === "true" ? "Oui" : "Non"
+  //     }</div>`;
+  //   if (acideUrique != "null")
+  //     pdfContent += `<div><strong>Acide Urique:</strong> ${
+  //       acideUrique === "true" ? "Oui" : "Non"
+  //     }</div>`;
+  //   if (tabac != "null")
+  //     pdfContent += `<div><strong>Tabac:</strong> ${
+  //       tabac === "true" ? "Oui" : "Non"
+  //     }</div>`;
+  //   if (alcool != "null")
+  //     pdfContent += `<div><strong>Alcool:</strong> ${
+  //       alcool === "true" ? "Oui" : "Non"
+  //     }</div>`;
+  //   if (traitementsLongueDuree != "")
+  //     pdfContent += `<div><strong>Traitements de Longue Durée:</strong> ${traitementsLongueDuree}</div>`;
+  //   if (notes != "")
+  //     pdfContent += `<div><strong>Notes Supplémentaires:</strong> ${notes}</div>`;
+
+  //   pdfContent += `<h2>Détails du Traitement</h2>`;
+  //   const addTraitement = (traitement, index) => {
+  //     const {
+  //       medicament,
+  //       formeGalenique,
+  //       dosage,
+  //       momentPrise,
+  //       avantApresRepas,
+  //       duree,
+  //       jsm,
+  //       remarque,
+  //     } = traitement;
+  //     if (medicament && medicament.trim() !== "") {
+  //       pdfContent += `<h4>Traitement ${index + 1}</h4>`;
+  //       pdfContent += `<div class="traitement-info">`;
+  //       addSection("Médicament", medicament);
+  //       addSection("Dosage", dosage + " " + formeGalenique);
+  //       if (momentPrise != "") addSection("Moment de Prise", momentPrise);
+  //       if (avantApresRepas != "null")
+  //         addSection("Avant/Après Repas", avantApresRepas);
+  //       addSection("Durée", duree + " " + jsm);
+  //       if (remarque != "") addSection("Remarque", remarque);
+  //       pdfContent += `</div><div class="section-divider"></div>`;
+  //     }
+  //   };
+
+  //   traitements.forEach((traitement, index) => {
+  //     addTraitement(traitement, index);
+  //   });
+  //   if (remarqueOrdonnance != "")
+  //     addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
+
+  //   const pdfContainer = document.createElement("div");
+  //   pdfContainer.innerHTML = pdfContent;
+  //   html2pdf().from(pdfContainer).set(opt).save();
+  //   html2pdf()
+  //     .from(pdfContainer)
+  //     .set(opt)
+  //     .outputPdf("datauristring")
+  //     .then((pdfDataUri) => {
+  //       const base64Pdf = pdfDataUri.split(",")[1];
+  //       axios
+  //         .post(
+  //           "http://localhost:3002/documents",
+  //           {
+  //             document: base64Pdf,
+  //             type: "consultation",
+  //             doctor_id: patientId,
+  //             appointment_id: rdvId,
+  //             patient_id: id,
+  //           },
+  //           {
+  //             headers: {
+  //               "access-token": localStorage.getItem("access-token"),
+  //               "clinic-database": localStorage.getItem("clinic-database"),
+  //               role: "doctor",
+  //             },
+  //           }
+  //         )
+  //         .then((response) => {
+  //           console.log(response);
+  //           //navigate
+  //         })
+  //         .catch((error) => {
+  //           console.error(error);
+  //         });
+  //     });
+  // };
+  const handleDownloadConsultationDB = () => {
+    const opt = {
+      margin: 0.5,
+      filename: `${
+        new Date().toISOString().split("T")[0]
+      }_consultation_${patientId}_${rdvId}_${doctorId}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+    };
+
+    let pdfContent = `
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+        }
+        h1 {
+          color: #2c3e50;
+          border-bottom: 2px solid #2c3e50;
+          padding-bottom: 5px;
+          margin-bottom: 20px;
+          font-size: 24px;
+        }
+        h2 {
+          color: #2c3e50;
+          border-bottom: 2px solid #2c3e50;
+          padding-bottom: 5px;
+          margin-top: 20px;
+        }
+        h3 {
+          color: #2c3e50;
+          margin-top: 10px;
+          margin-bottom: 10px;
+          font-size: 16px;
+        }
+        h4 {
+          color: #2c3e50;
+          margin-top: 5px;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        .traitement-info {
+          display: flex;
+          flex-wrap: wrap;
+          line-height: 1.2;
+          margin-bottom: 10px;
+        }
+        .traitement-info div {
+          flex: 1 1 50%;
+          min-width: 200px;
+          margin-bottom: 5px;
+        }
+        .section-divider {
+          border-top: 2px solid #2c3e50;
+          margin: 15px 0;
+        }
+      </style>
+    `;
+
+    const formattedDate = new Date().toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    pdfContent += `<h1>Consultation le ${formattedDate}</h1>`;
+    const addSection = (title, value) => {
+      if (value && value.trim() !== "" && value !== "null") {
+        pdfContent += `<div class="traitement-info"><div><strong>${title}: </strong> ${value}</div></div>`;
+      }
+    };
+
+    pdfContent += `<h2>Informations Patient</h2>`;
+    pdfContent += `
+      <div class="single-line">
+        <div><strong>Nom:</strong> ${firstName} ${lastName}</div>
+        <div><strong>Téléphone:</strong> ${telephone}</div>
+        <div><strong>Taille:</strong> ${taille} cm</div>
+        <div><strong>Poids:</strong> ${poids} kg</div>
+        <div><strong>Age:</strong> ${age} ans</div>
+      </div>
+    `;
+
+    pdfContent += `<h2>Détails Consultation</h2>`;
+    if (motifConsultation != "")
+      pdfContent += `<div><strong>Motif de consultation:</strong> ${motifConsultation}</div>`;
+    if (symptomes != "")
+      pdfContent += `<div><strong>Symptômes:</strong> ${symptomes}</div>`;
+    if (diagnostic != "")
+      pdfContent += `<div><strong>Diagnostic:</strong> ${diagnostic}</div>`;
+    if (antecedentsMedicaux != "")
+      pdfContent += `<div><strong>Antécédents Médicaux:</strong> ${antecedentsMedicaux}</div>`;
+    if (antecedentsChirurgicaux != "")
+      pdfContent += `<div><strong>Antécédents Chirurgicaux:</strong> ${antecedentsChirurgicaux}</div>`;
+    if (antecedentsFamiliaux != "")
+      pdfContent += `<div><strong>Antécédents Familiaux:</strong> ${antecedentsFamiliaux}</div>`;
+    if (antecedentsAllergiques != "")
+      pdfContent += `<div><strong>Antécédents Allergiques:</strong> ${antecedentsAllergiques}</div>`;
+    if (diabete != "null")
+      pdfContent += `<div><strong>Diabète:</strong> ${
+        diabete === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (hta != "null")
+      pdfContent += `<div><strong>HTA:</strong> ${
+        hta === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (obesite != "null")
+      pdfContent += `<div><strong>Obésité:</strong> ${
+        obesite === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (acideUrique != "null")
+      pdfContent += `<div><strong>Acide Urique:</strong> ${
+        acideUrique === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (tabac != "null")
+      pdfContent += `<div><strong>Tabac:</strong> ${
+        tabac === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (alcool != "null")
+      pdfContent += `<div><strong>Alcool:</strong> ${
+        alcool === "true" ? "Oui" : "Non"
+      }</div>`;
+    if (traitementsLongueDuree != "")
+      pdfContent += `<div><strong>Traitements de Longue Durée:</strong> ${traitementsLongueDuree}</div>`;
+    if (notes != "")
+      pdfContent += `<div><strong>Notes Supplémentaires:</strong> ${notes}</div>`;
+
+    pdfContent += `<h2>Détails du Traitement</h2>`;
+    const addTraitement = (traitement, index) => {
+      const {
+        medicament,
+        formeGalenique,
+        dosage,
+        momentPrise,
+        avantApresRepas,
+        duree,
+        jsm,
+        remarque,
+      } = traitement;
+      if (medicament && medicament.trim() !== "") {
+        pdfContent += `<h4>Traitement ${index + 1}</h4>`;
+        pdfContent += `<div class="traitement-info">`;
+        addSection("Médicament", medicament);
+        addSection("Dosage", dosage + " " + formeGalenique);
+        if (momentPrise != "") addSection("Moment de Prise", momentPrise);
+        if (avantApresRepas != "null")
+          addSection("Avant/Après Repas", avantApresRepas);
+        addSection("Durée", duree + " " + jsm);
+        if (remarque != "") addSection("Remarque", remarque);
+        pdfContent += `</div><div class="section-divider"></div>`;
+      }
+    };
+
+    traitements.forEach((traitement, index) => {
+      addTraitement(traitement, index);
+    });
+    if (remarqueOrdonnance != "")
+      addSection("Remarque Générale sur le Traitement", remarqueOrdonnance);
+
+    const pdfContainer = document.createElement("div");
+    pdfContainer.innerHTML = pdfContent;
+    html2pdf().from(pdfContainer).set(opt).save();
+    html2pdf()
+      .from(pdfContainer)
+      .set(opt)
+      .outputPdf("datauristring")
+      .then((pdfDataUri) => {
+        const base64Pdf = pdfDataUri.split(",")[1];
+        axios
+          .post(
+            "http://localhost:3002/documents",
+            {
+              document: base64Pdf,
+              type: "consultation",
+              doctor_id: doctorId,
+              appointment_id: rdvId,
+              patient_id: id,
+            },
+            {
+              headers: {
+                "access-token": localStorage.getItem("access-token"),
+                "clinic-database": localStorage.getItem("clinic-database"),
+                role: "doctor",
+              },
+            }
+          )
+          .then((response) => {
+            console.log(response);
+            // navigate
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
   };
 
   const [id, setId] = useState("");
@@ -133,6 +788,7 @@ function DoctorConsultation() {
         console.error(error);
       }
     };
+
     fetchPatient();
   }, []);
 
@@ -250,54 +906,68 @@ function DoctorConsultation() {
                 onChange={(e) => setNotes(e.target.value)}
               />
               <div className="grid grid-cols-3 gap-4 mt-4">
-                <Select
+                <select
                   label="Diabète"
                   value={diabete}
                   onChange={(e) => setDiabete(e.target.value)}
+                  className="flex-grow border-gray-200  border-2 rounded-md"
                 >
-                  <Option>Oui</Option>
-                  <Option>Non</Option>
-                </Select>
-                <Select
+                  <option value="null">Diabète</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+
+                <select
                   label="HTA"
                   value={hta}
                   onChange={(e) => setHta(e.target.value)}
+                  className="flex-grow border-gray-200  border-2 rounded-md"
                 >
-                  <Option>Oui</Option>
-                  <Option>Non</Option>
-                </Select>
-                <Select
+                  <option value="null">HTA</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+                <select
                   label="Tabac"
                   value={tabac}
                   onChange={(e) => setTabac(e.target.value)}
+                  className="flex-grow border-gray-200  border-2 rounded-md"
                 >
-                  <Option>Oui</Option>
-                  <Option>Non</Option>
-                </Select>
-                <Select
+                  <option value="null">Tabac</option>
+
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+                <select
                   label="Alcool"
                   value={alcool}
                   onChange={(e) => setAlcool(e.target.value)}
+                  className="flex-grow border-gray-200  border-2 rounded-md"
                 >
-                  <Option>Oui</Option>
-                  <Option>Non</Option>
-                </Select>
-                <Select
+                  <option value="null">Alcool</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+                <select
                   label="Obésité"
                   value={obesite}
                   onChange={(e) => setObesite(e.target.value)}
+                  className="flex-grow border-gray-200  border-2 rounded-md"
                 >
-                  <Option>Oui</Option>
-                  <Option>Non</Option>
-                </Select>
-                <Select
+                  <option value="null">Obésité</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+                <select
                   label="Acide urique"
                   value={acideUrique}
                   onChange={(e) => setAcideUrique(e.target.value)}
+                  className="flex-grow border-gray-200  border-2 rounded-md"
                 >
-                  <Option>Oui</Option>
-                  <Option>Non</Option>
-                </Select>
+                  <option value="null">Acide urique</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
               </div>
             </div>
           </div>
@@ -359,7 +1029,15 @@ function DoctorConsultation() {
                       }
                       className="flex-grow"
                     />
-                    <Select
+                    <Input
+                      label="Durée"
+                      value={traitement.duree}
+                      onChange={(e) =>
+                        handleTraitementChange(index, "duree", e.target.value)
+                      }
+                      className="flex-grow"
+                    />
+                    <select
                       label="Avant/Après repas"
                       value={traitement.avantApresRepas}
                       onChange={(e) =>
@@ -369,32 +1047,27 @@ function DoctorConsultation() {
                           e.target.value
                         )
                       }
-                      className="flex-grow"
+                      className="flex-grow border-gray-200  border-2 rounded-md"
                     >
-                      <Option>Avant repas</Option>
-                      <Option>Après repas</Option>
-                      <Option>Avant et après repas</Option>
-                    </Select>
-                    <Input
-                      label="Durée"
-                      value={traitement.duree}
-                      onChange={(e) =>
-                        handleTraitementChange(index, "duree", e.target.value)
-                      }
-                      className="flex-grow"
-                    />
-                    <Select
+                      <option value="null">Avant/Après repas</option>
+                      <option value="avant">Avant repas</option>
+                      <option value="apres">Après repas</option>
+                      <option value="avantEtApres">Avant et après repas</option>
+                    </select>
+
+                    <select
                       label="J/S/M"
                       value={traitement.jsm}
                       onChange={(e) =>
                         handleTraitementChange(index, "jsm", e.target.value)
                       }
-                      className="flex-grow"
+                      className="flex-grow border-gray-200  border-2 rounded-md"
                     >
-                      <Option>Jours</Option>
-                      <Option>Semaines</Option>
-                      <Option>Mois</Option>
-                    </Select>
+                      <option value="null">J/S/M</option>
+                      <option value="jours">Jours</option>
+                      <option value="semaines">Semaines</option>
+                      <option value="mois">Mois</option>
+                    </select>
                   </div>
                   <Textarea
                     label="Remarque"
@@ -444,16 +1117,14 @@ function DoctorConsultation() {
           <div className="mt-6 mb-16 flex space-x-4 justify-center align-middle items-center">
             <Button
               color="blue"
-              onClick={handleDownloadPDF}
+              onClick={handleDownloadOrdonance}
               className="w-48 h-14"
             >
               Visualiser l'ordonnance (PDF)
             </Button>
             <Button
               color="green"
-              onClick={() => {
-                // navigate("/dashboard");
-              }}
+              onClick={handleDownloadConsultationDB}
               className="w-48 h-14"
             >
               Fin de Consultation

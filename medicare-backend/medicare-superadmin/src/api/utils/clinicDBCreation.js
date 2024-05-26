@@ -63,20 +63,11 @@ function createClinicDB(code, adminEmail, adminPassword) {
             time TIME NOT NULL,
             patient_id INT NOT NULL,
             doctor_id INT NOT NULL,
-            consultation_id INT NULL,
             type ENUM('consultation', 'test', 'control'),
             status ENUM('completed', 'pending', 'cancelled') DEFAULT 'pending',
             FOREIGN KEY (patient_id) REFERENCES Patients(id),
             FOREIGN KEY (doctor_id) REFERENCES Users(id)
                 )`
-  );
-  db.query(
-    `CREATE TABLE Consultations (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            appointment_id INT NOT NULL,
-            details TEXT NOT NULL,
-            FOREIGN KEY (appointment_id) REFERENCES Appointments(id)
-        )`
   );
   db.query(
     `CREATE TABLE Payments (
@@ -92,12 +83,13 @@ function createClinicDB(code, adminEmail, adminPassword) {
   db.query(
     `CREATE TABLE Documents (
             id INT PRIMARY KEY AUTO_INCREMENT,
-            document VARCHAR(255) NOT NULL,
-            type ENUM('prescription', 'test', 'medical_certificate'),
-            consultation_id INT NOT NULL,
+            document TEXT NOT NULL,
+            type ENUM('prescription', 'test', 'medical_certificate','consultation'),
+            appointment_id INT NOT NULL,
             doctor_id INT NOT NULL,
             patient_id INT NOT NULL,
-            FOREIGN KEY (consultation_id) REFERENCES Consultations(id),
+            date DATE NOT NULL,
+            FOREIGN KEY (appointment_id) REFERENCES Appointments(id),
             FOREIGN KEY (doctor_id) REFERENCES Users(id),
             FOREIGN KEY (patient_id) REFERENCES Patients(id)
         )`
