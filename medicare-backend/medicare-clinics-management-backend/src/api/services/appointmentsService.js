@@ -1,4 +1,40 @@
 const getConnectionPool = require("../../config/connectionPool");
+const moment = require("moment"); // Ensure you have moment.js installed to handle date and time comparisons
+
+// async function getAppointments(clinicDbName, role, id) {
+//   return new Promise((resolve, reject) => {
+//     const pool = getConnectionPool(clinicDbName);
+
+//     let query = `
+//       SELECT a.*,
+//              CONCAT(d.first_name, ' ', d.last_name) AS doctor_name,
+//              CONCAT(p.first_name, ' ', p.last_name) AS patient_name
+//       FROM appointments a
+//       JOIN users d ON a.doctor_id = d.id
+//       JOIN patients p ON a.patient_id = p.id`;
+
+//     let queryParams = [];
+
+//     if (role === "admin" || role === "secretary") {
+//     } else if (role === "doctor") {
+//       query += " WHERE a.doctor_id = ?";
+//       queryParams.push(id);
+//     } else {
+//       return reject("Unauthorized");
+//     }
+
+//     query +=
+//       " ORDER BY STR_TO_DATE(CONCAT(a.date, ' ', a.time), '%Y-%m-%d %H:%i:%s') DESC ";
+
+//     pool.query(query, queryParams, (err, result) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve(result);
+//       }
+//     });
+//   });
+// }
 
 async function getAppointments(clinicDbName, role, id) {
   return new Promise((resolve, reject) => {
@@ -25,20 +61,67 @@ async function getAppointments(clinicDbName, role, id) {
     query +=
       " ORDER BY STR_TO_DATE(CONCAT(a.date, ' ', a.time), '%Y-%m-%d %H:%i:%s') DESC ";
 
-    pool.query(query, queryParams, (err, result) => {
+    pool.query(query, queryParams, async (err, result) => {
       if (err) {
-        reject(err);
-      } else {
+        return reject(err);
+      }
+
+      const currentTime = moment();
+      const appointmentsToUpdate = [];
+
+      for (const appointment of result) {
+        const appointmentDateStr = appointment.date;
+        const appointmentTimeStr = appointment.time;
+        const appointmentDate = moment(appointmentDateStr).format("YYYY-MM-DD");
+        const appointmentDateTimeStr = `${appointmentDate} ${appointmentTimeStr}`;
+        const appointmentTime = moment(appointmentDateTimeStr, "YYYY-MM-DD HH:mm:ss");
+
+        console.log("appointmentDateStr:", appointmentDateStr);
+        console.log("appointmentTimeStr:", appointmentTimeStr);
+        console.log("appointmentDateTimeStr:", appointmentDateTimeStr);
+        console.log("appointmentTime:", appointmentTime.isValid() ? appointmentTime.format() : "Invalid date");
+
+        if (
+          appointment.status === "pending" &&
+          appointmentTime.isBefore(currentTime)
+        ) {
+          appointment.status = "cancelled";
+          appointmentsToUpdate.push(appointment);
+        }
+      }
+
+      // Update statuses for the necessary appointments
+      const updatePromises = appointmentsToUpdate.map((appointment) => {
+        return new Promise((resolve, reject) => {
+          pool.query(
+            "UPDATE appointments SET status = 'cancelled' WHERE id = ?",
+            [appointment.id],
+            (err, result) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(result);
+            }
+          );
+        });
+      });
+
+      try {
+        await Promise.all(updatePromises);
         resolve(result);
+      } catch (updateError) {
+        reject(updateError);
       }
     });
   });
 }
 
+
+
+
 async function searchAppointments(clinicDbName, role, id, search) {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
-    console.log(search);
     let query = `
       SELECT a.*, 
              CONCAT(d.first_name, ' ', d.last_name) AS doctor_name, 
@@ -67,9 +150,6 @@ async function searchAppointments(clinicDbName, role, id, search) {
 
     query += `
       ORDER BY STR_TO_DATE(CONCAT(a.date, ' ', a.time), '%Y-%m-%d %H:%i:%s') DESC`;
-
-    console.log("Query: ", query);
-    console.log("Query Parameters: ", queryParams);
 
     pool.query(query, queryParams, (err, result) => {
       if (err) {

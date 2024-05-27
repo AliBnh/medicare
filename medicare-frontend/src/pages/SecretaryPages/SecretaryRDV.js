@@ -15,6 +15,8 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import { SidebarItem } from "../../components/Sidebar/Sidebar";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import CalendarComponent from "../../components/CalendarComponent";
+
 import {
   WalletMinimal,
   Users,
@@ -306,6 +308,8 @@ function SecretaryRDV() {
   const [patientEdit, setPatientEdit] = useState();
   const [doctorEdit, setDoctorEdit] = useState();
   const [patientName, setPatientName] = useState();
+  const [view, setView] = useState("table");
+
   const editRdv = (id, patient_name) => {
     setDisplayedEdit(1);
     setEditRdvId(id);
@@ -324,7 +328,12 @@ function SecretaryRDV() {
         if (respone.data.length > 0) {
           setRdvToEdit(respone.data[0]);
           setStatusEdit(respone.data[0].status);
-          setDateEdit(respone.data[0].date);
+
+          const currentDate = new Date(respone.data[0].date.split("T")[0]);
+          currentDate.setDate(currentDate.getDate() + 1);
+          const updatedDate = currentDate.toISOString().split("T")[0];
+
+          setDateEdit(updatedDate);
           setTimeEdit(respone.data[0].time);
           setTypeEdit(respone.data[0].type);
           setDoctorEdit(respone.data[0].doctor_id);
@@ -393,197 +402,225 @@ function SecretaryRDV() {
         <hr className="my-3" />
       </Sidebar>
       <Card className="h-full w-full rounded-none">
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="mb-8 flex items-center justify-between gap-8">
-            <div>
-              <Typography variant="h4" color="blue-gray">
-                Liste des rendez-vous
-              </Typography>
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="w-full md:w-72">
+        <CardHeader
+          floated={false}
+          shadow={false}
+          className="rounded-none pb-10"
+        >
+          <Typography variant="h4" color="blue-gray" className="mb-4">
+            Liste des rendez-vous
+          </Typography>
+          <div className="flex flex-row items-center justify-between gap-4">
+            <div className=" w-72">
               <Input
                 label="Rechercher"
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
                 onChange={(e) => searchRDV(e.target.value)}
               />
             </div>
+            <div>
+              <Button
+                onClick={() => setView(view === "table" ? "calendar" : "table")}
+              >
+                {view === "table"
+                  ? "Afficher le Calendrier"
+                  : "Afficher la Table"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardBody className="overflow-auto px-0">
-          <table className="mt-4 w-full min-w-max table-auto text-left">
-            <thead>
-              <tr>
-                {TABLE_HEAD.map((head) => (
-                  <th
-                    key={head}
-                    className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
-                  >
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="font-normal leading-none opacity-70"
+          {view === "table" ? (
+            <table className="mt-4 w-full min-w-max table-auto text-left">
+              <thead>
+                <tr>
+                  {TABLE_HEAD.map((head) => (
+                    <th
+                      key={head}
+                      className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
                     >
-                      {head}
-                    </Typography>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {getVisibleAppointments().map(
-                (
-                  {
-                    id,
-                    patient_id,
-                    patient_name,
-                    doctor_name,
-                    doctor_id,
-                    type,
-                    date,
-                    time,
-                    status,
-                  },
-                  index
-                ) => {
-                  const isLast = index === TABLE_ROWS.length - 1;
-                  const classes = isLast
-                    ? "p-4"
-                    : "p-4 border-b border-blue-gray-50";
+                      <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal leading-none opacity-70"
+                      >
+                        {head}
+                      </Typography>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {getVisibleAppointments().map(
+                  (
+                    {
+                      id,
+                      patient_id,
+                      patient_name,
+                      doctor_name,
+                      doctor_id,
+                      type,
+                      date,
+                      time,
+                      status,
+                    },
+                    index
+                  ) => {
+                    const isLast = index === TABLE_ROWS.length - 1;
+                    const classes = isLast
+                      ? "p-4"
+                      : "p-4 border-b border-blue-gray-50";
 
-                  return (
-                    <tr key={index}>
-                      <td className={classes}>
-                        <div className="flex items-center gap-3">
+                    return (
+                      <tr key={index}>
+                        <td className={classes}>
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col">
+                              <Typography
+                                variant="small"
+                                color="blue-gray"
+                                className="font-normal"
+                              >
+                                {patient_name}
+                              </Typography>
+                            </div>
+                          </div>
+                        </td>
+                        <td className={classes}>
                           <div className="flex flex-col">
                             <Typography
                               variant="small"
                               color="blue-gray"
                               className="font-normal"
                             >
-                              {patient_name}
+                              {doctor_name}
                             </Typography>
                           </div>
-                        </div>
-                      </td>
-                      <td className={classes}>
-                        <div className="flex flex-col">
+                        </td>
+                        <td className={classes}>
+                          <div className="flex flex-col">
+                            <Typography
+                              variant="small"
+                              color="blue-gray"
+                              className="font-normal"
+                            >
+                              {types.find((item) => item.name === type).value}
+                            </Typography>
+                          </div>
+                        </td>
+
+                        <td className={classes}>
                           <Typography
                             variant="small"
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {doctor_name}
+                            {new Intl.DateTimeFormat("en-GB", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            }).format(new Date(date))}
                           </Typography>
-                        </div>
-                      </td>
-                      <td className={classes}>
-                        <div className="flex flex-col">
+                        </td>
+                        <td className={classes}>
                           <Typography
                             variant="small"
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {types.find((item) => item.name === type).value}
+                            {new Intl.DateTimeFormat("en-GB", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            }).format(new Date(`1970-01-01T${time}Z`))}{" "}
                           </Typography>
-                        </div>
-                      </td>
-
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {new Intl.DateTimeFormat("en-EN", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          }).format(new Date(date))}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          {time}
-                        </Typography>
-                      </td>
-                      <td className={classes}>
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-normal"
-                        >
-                          <div
-                            className={`rounded-full h-5 w-5 ${
-                              status === "pending"
-                                ? "bg-yellow-300"
-                                : status === "completed"
-                                ? "bg-green-300"
-                                : status === "cancelled"
-                                ? "bg-red-300"
-                                : "bg-gray-300" // default color if status is unknown
-                            }`}
-                          ></div>
-                        </Typography>
-                      </td>
-
-                      <td className={classes}>
-                        <Tooltip content="Modifier RDV">
-                          <IconButton
-                            variant="text"
-                            onClick={() => {
-                              editRdv(id, patient_name);
-                            }}
-                            className="ml-[-0.5rem]"
+                        </td>
+                        <td className={classes}>
+                          <Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-normal"
                           >
-                            <PencilIcon className="h-4 w-4 text-blue-700" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip content="Supprimer RDV">
-                          <IconButton
-                            variant="text"
-                            className="ml-[-0.5rem]"
-                            onClick={() => handleDeleteAppointment(id)}
-                          >
-                            <TrashIcon className="h-4 w-4" color="red" />
-                          </IconButton>
-                        </Tooltip>
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
-            </tbody>
-          </table>
+                            <div
+                              className={`rounded-full h-5 w-5 ${
+                                status === "pending"
+                                  ? "bg-yellow-300"
+                                  : status === "completed"
+                                  ? "bg-green-300"
+                                  : status === "cancelled"
+                                  ? "bg-red-300"
+                                  : "bg-gray-300"
+                              }`}
+                            ></div>
+                          </Typography>
+                        </td>
+
+                        <td className={classes}>
+                          <Tooltip content="Modifier RDV">
+                            <IconButton
+                              variant="text"
+                              onClick={() => {
+                                editRdv(id, patient_name);
+                              }}
+                              className="ml-[-0.5rem]"
+                            >
+                              <PencilIcon className="h-4 w-4 text-blue-700" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content="Supprimer RDV">
+                            <IconButton
+                              variant="text"
+                              className="ml-[-0.5rem]"
+                              onClick={() => handleDeleteAppointment(id)}
+                            >
+                              <TrashIcon className="h-4 w-4" color="red" />
+                            </IconButton>
+                          </Tooltip>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )}
+              </tbody>
+            </table>
+          ) : (
+            // <div style={{ height: "80vh" }}>
+            <div className="m-10">
+              <CalendarComponent appointments={rdvs} />
+            </div>
+          )}
         </CardBody>
-        <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4 absolute bottom-2 w-full ">
-          <Typography variant="small" color="blue-gray" className="font-normal">
-            Page {currentPage} sur {totalPages}
-          </Typography>
-          <div className="flex gap-2">
-            <Button
-              variant="outlined"
-              size="sm"
-              disabled={currentPage === 1} // Disable previous button on first page
-              onClick={() => handlePageChange(currentPage - 1)}
+        {view === "table" ? (
+          <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4 absolute bottom-2 w-full ">
+            <Typography
+              variant="small"
+              color="blue-gray"
+              className="font-normal"
             >
-              Précédent
-            </Button>
-            <Button
-              variant="outlined"
-              size="sm"
-              disabled={currentPage === totalPages} // Disable next button on last page
-              onClick={() => handlePageChange(currentPage + 1)}
-            >
-              Suivant
-            </Button>
-          </div>
-        </CardFooter>
+              Page {currentPage} sur {totalPages}
+            </Typography>
+            <div className="flex gap-2">
+              <Button
+                variant="outlined"
+                size="sm"
+                disabled={currentPage === 1} // Disable previous button on first page
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="outlined"
+                size="sm"
+                disabled={currentPage === totalPages} // Disable next button on last page
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Suivant
+              </Button>
+            </div>
+          </CardFooter>
+        ) : (
+          <></>
+        )}
       </Card>
 
       {displayedEdit && (
@@ -672,11 +709,11 @@ function SecretaryRDV() {
                           >
                             Date
                           </label>
+
                           <input
                             class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                             id="grid-last-name"
                             type="date"
-                            placeholder="SIX"
                             value={dateEdit}
                             onChange={(e) => setDateEdit(e.target.value)}
                           />

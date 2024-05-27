@@ -385,7 +385,7 @@ function DoctorPatients() {
     setIsAddDisplayed(0);
   };
   const [isAddDisplayed, setIsAddDisplayed] = useState();
-  const [time, setTime] = useState();
+  // const [time, setTime] = useState();
   const [selectedDoc, setSelectedDoc] = useState();
   const [selectedPatient, setSelectedPatient] = useState();
   const [selectedId, setSelectedId] = useState();
@@ -447,7 +447,28 @@ function DoctorPatients() {
   const redirectToDocumentsPage = (id) => {
     navigate(`/patient/documents/${id}`);
   };
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let hour = 7; hour <= 21; hour++) {
+      for (let minute = 0; minute < 60; minute += 5) {
+        const time = new Date(0, 0, 0, hour, minute);
+        const formattedTime = new Intl.DateTimeFormat("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).format(time);
+        times.push(formattedTime);
+      }
+    }
+    return times;
+  };
+  const [time, setTime] = useState("12:00");
 
+  const timeOptions = generateTimeOptions();
+
+  const handleTimeChange = (e) => {
+    setTime(e.target.value);
+  };
   return (
     <div className="backdrop-blur-none	 bg-login-color transition duration-500 ease-in-out w-screen h-screen flex justify-center items-center">
       <Sidebar>
@@ -566,7 +587,7 @@ function DoctorPatients() {
                             color="blue-gray"
                             className="font-normal"
                           >
-                            {new Intl.DateTimeFormat("en-EN", {
+                            {new Intl.DateTimeFormat("en-GB", {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
@@ -1308,7 +1329,7 @@ function DoctorPatients() {
                             </label>
                           </div>
                         </div>
-                        <div class="w-1/2 m-2">
+                        {/* <div class="w-1/2 m-2">
                           <label
                             class="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                             for="grid-last-name"
@@ -1323,6 +1344,26 @@ function DoctorPatients() {
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
                           />
+                        </div> */}
+                        <div className="w-1/2 m-2">
+                          <label
+                            className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
+                            htmlFor="time-select"
+                          >
+                            Heure
+                          </label>
+                          <select
+                            id="time-select"
+                            className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            value={time}
+                            onChange={handleTimeChange}
+                          >
+                            {timeOptions.map((timeOption) => (
+                              <option key={timeOption} value={timeOption}>
+                                {timeOption}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                       <div class="flex mx-3 mb-6">

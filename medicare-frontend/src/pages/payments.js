@@ -35,7 +35,7 @@ function Payments() {
   const [reste, setReste] = useState("");
   const [paymentMode, setPaymentMode] = useState("");
 
-  const itemsPerPage = 7;
+  const itemsPerPage = 5;
   const totalPages = Math.ceil(payments.length / itemsPerPage);
 
   const calculateTotalRevenues = () => {
@@ -262,7 +262,11 @@ function Payments() {
                       {payment.patientFirstName} {payment.patientLastName}
                     </td>
                     <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
-                      {new Date(payment.date).toLocaleDateString()}
+                      {new Intl.DateTimeFormat("en-GB", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      }).format(new Date(payment.date))}
                     </td>
                     <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-500">
                       {payment.amount}
@@ -310,7 +314,7 @@ function Payments() {
             </table>
           </div>
 
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex justify-between items-center  mt-4">
             <Button
               disabled={currentPage === 1}
               onClick={() => handlePageChange(currentPage - 1)}
@@ -327,7 +331,7 @@ function Payments() {
               Suivant
             </Button>
           </div>
-          <div className="flex flex-col items-center mt-8 gap-4">
+          <div className="flex flex-col items-center mt-20 mx-auto relative  gap-4">
             <Typography
               variant="h6"
               color="blue-gray"
