@@ -476,43 +476,45 @@ function DoctorRDV() {
                         </Typography>
                       </td>
                       <td className={classes}>
-                        {status == "pending" ? (
-                          <Tooltip content="Consulter">
+                        <div className="flex items-center space-x-0">
+                          <Tooltip content="Modifier RDV">
+                            <IconButton
+                              variant="text"
+                              onClick={() => {
+                                editRdv(id, patient_name);
+                              }}
+                              className="ml-[-1rem]"
+                            >
+                              <PencilIcon className="h-4 w-4 text-blue-700" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content="Supprimer RDV">
                             <IconButton
                               variant="text"
                               // className="ml-[-0.5rem]"
-                              onClick={() => {
-                                navigate(
-                                  `/doctor/rdv/consultation/${patient_id}/${id}`
-                                );
-                              }}
+                              onClick={() => handleDeleteAppointment(id)}
                             >
-                              <ScanEye className="h-4 w-4 text-green-500" />
+                              <TrashIcon className="h-4 w-4" color="red" />
                             </IconButton>
                           </Tooltip>
-                        ) : (
-                          <></>
-                        )}
-                        <Tooltip content="Modifier RDV">
-                          <IconButton
-                            variant="text"
-                            onClick={() => {
-                              editRdv(id, patient_name);
-                            }}
-                            // className="ml-[-0.5rem]"
-                          >
-                            <PencilIcon className="h-4 w-4 text-blue-700" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip content="Supprimer RDV">
-                          <IconButton
-                            variant="text"
-                            // className="ml-[-0.5rem]"
-                            onClick={() => handleDeleteAppointment(id)}
-                          >
-                            <TrashIcon className="h-4 w-4" color="red" />
-                          </IconButton>
-                        </Tooltip>
+                          {status == "pending" ? (
+                            <Tooltip content="Consulter">
+                              <IconButton
+                                variant="text"
+                                // className="ml-[-0.5rem]"
+                                onClick={() => {
+                                  navigate(
+                                    `/doctor/rdv/consultation/${patient_id}/${id}`
+                                  );
+                                }}
+                              >
+                                <ScanEye className="h-4 w-4 text-green-500" />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            <></>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
