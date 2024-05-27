@@ -16,6 +16,7 @@ import SecretaryRDV from "./pages/SecretaryPages/SecretaryRDV";
 import DoctorConsultation from "./pages/DoctorPages/DoctorConsultation";
 import DoctorRDV from "./pages/DoctorPages/DoctorRDV";
 import PatientDetails from "./pages/PatientDetails";
+import Payments from "./pages/payments";
 function App() {
   useEffect(() => {
     document.title = "MediCare";
@@ -52,6 +53,7 @@ function App() {
         <Route path="/doctor/patients" element={<DoctorPatients />}></Route>
         <Route path="/doctor/rdv" element={<DoctorRDV />}></Route>
         <Route path="/rdv" element={<SecretaryRDV />}></Route>
+        <Route path="/payments" element={<Payments />}></Route>
         <Route
           path="/doctor/rdv/consultation/:patientId/:rdvId"
           element={<DoctorConsultation />}

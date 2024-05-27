@@ -12,7 +12,13 @@ import {
   Trash2,
   Download,
 } from "lucide-react";
-import { Card, CardBody, Typography, Button } from "@material-tailwind/react";
+import {
+  Card,
+  CardBody,
+  Typography,
+  Button,
+  IconButton,
+} from "@material-tailwind/react";
 import axios from "axios";
 import dayjs from "dayjs";
 
@@ -224,7 +230,7 @@ function PatientDetails() {
                       <Typography className="font-bold">
                         Date: {dayjs(doc.date).format("DD/MM/YYYY")}
                       </Typography>
-
+                      {/* 
                       <div className="flex justify-center mt-4 space-x-2">
                         <Button
                           color="blue"
@@ -275,6 +281,52 @@ function PatientDetails() {
                         >
                           <Trash2 className="w-4 h-4 mr-1" />
                         </Button>
+                      </div> */}
+
+                      <div className="flex justify-center mt-4 space-x-2">
+                        <IconButton
+                          color="blue"
+                          onClick={() => {
+                            const blob = new Blob(
+                              [
+                                Uint8Array.from(atob(doc.content), (c) =>
+                                  c.charCodeAt(0)
+                                ),
+                              ],
+                              { type: "application/pdf" }
+                            );
+                            const url = URL.createObjectURL(blob);
+                            window.open(url, "_blank");
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </IconButton>
+                        <IconButton
+                          color="green"
+                          onClick={() => {
+                            const blob = new Blob(
+                              [
+                                Uint8Array.from(atob(doc.content), (c) =>
+                                  c.charCodeAt(0)
+                                ),
+                              ],
+                              { type: "application/pdf" }
+                            );
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = `${doc.filename}`;
+                            link.click();
+                          }}
+                        >
+                          <Download className="w-4 h-4" />
+                        </IconButton>
+                        <IconButton
+                          color="red"
+                          onClick={() => handleDeleteDocument(doc.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </IconButton>
                       </div>
                     </CardBody>
                   </Card>

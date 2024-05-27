@@ -157,13 +157,16 @@ function DoctorPatients() {
   const [selectedGender, setSelectedGender] = useState();
   const [height, setHeight] = useState();
   const [weight, setWeight] = useState();
-  const [insurance, setInsurance] = useState();
+  const [selectedInsurance, setSelectedInsurance] = useState();
   const [email, setEmail] = useState();
   const [date, setDate] = useState();
 
   const [displayed, setDisplayed] = useState();
   const handleSelection = (event) => {
     setSelectedGender(event.target.value);
+  };
+  const handleInsuranceSelection = (event) => {
+    setSelectedInsurance(event.target.value);
   };
   const handleCancel = () => {
     setDisplayed(0);
@@ -185,7 +188,7 @@ function DoctorPatients() {
           date_of_birth: date,
           height: height,
           weight: weight,
-          insurance: insurance,
+          insurance: selectedInsurance,
           email: email,
           doctor_id: id,
         },
@@ -924,14 +927,44 @@ function DoctorPatients() {
                             >
                               Assurance
                             </label>
-                            <input
-                              class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                              id="grid-password"
-                              type="text"
-                              placeholder="CNSS"
-                              value={insurance}
-                              onChange={(e) => setInsurance(e.target.value)}
-                            />
+                            <div class="relative">
+                              <select
+                                name="roler"
+                                class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                id="grid-state"
+                                value={selectedInsurance}
+                                onChange={handleInsuranceSelection}
+                              >
+                                <option value="">Choisir</option>
+                                <option value="Wafa Assurance">
+                                  Wafa Assurance
+                                </option>
+                                <option value="RMA Watanya">RMA Watanya</option>
+                                <option value="AtlantaSanad">
+                                  AtlantaSanad
+                                </option>
+                                <option value="AXA Assurance Maroc">
+                                  AXA Assurance Maroc
+                                </option>
+                                <option value="Saham Assurance">
+                                  Saham Assurance
+                                </option>
+                                <option value="MAMDA">MAMDA</option>
+                                <option value="MCMA">MCMA</option>
+                                <option value="La Marocaine Vie">
+                                  La Marocaine Vie
+                                </option>
+                              </select>
+                              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg
+                                  class="fill-current h-4 w-4"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <div class="flex mx-3 mb-2">

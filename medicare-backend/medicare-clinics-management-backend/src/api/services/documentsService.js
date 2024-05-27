@@ -42,6 +42,35 @@ exports.getDocumentsByPatient = (clinicDbName, patientId) => {
   });
 };
 
+// exports.createDocument = (clinicDbName, document) => {
+//   return new Promise((resolve, reject) => {
+//     const pool = getConnectionPool(clinicDbName);
+//     const todayDate = new Date().toISOString().slice(0, 10);
+//     const filename = `${new Date().toISOString().split("T")[0]}_${
+//       document.type
+//     }_${document.patient_id}_${document.doctor_id}_${
+//       document.appointment_id
+//     }.pdf`;
+//     const query =
+//       "INSERT INTO Documents (document, type, appointment_id, doctor_id, patient_id,date) VALUES (?, ?, ?, ?, ?,?)";
+//     const queryParams = [
+//       filename,
+//       document.type,
+//       document.appointment_id,
+//       document.doctor_id,
+//       document.patient_id,
+//       todayDate,
+//     ];
+//     pool.query(query, queryParams, (err, result) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve({ id: result.insertId, ...result });
+//       }
+//     });
+//   });
+// };
+
 exports.createDocument = (clinicDbName, document) => {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
@@ -51,9 +80,9 @@ exports.createDocument = (clinicDbName, document) => {
     }_${document.patient_id}_${document.doctor_id}_${
       document.appointment_id
     }.pdf`;
-    const query =
-      "INSERT INTO Documents (document, type, appointment_id, doctor_id, patient_id,date) VALUES (?, ?, ?, ?, ?,?)";
-    const queryParams = [
+    const insertDocumentQuery =
+      "INSERT INTO Documents (document, type, appointment_id, doctor_id, patient_id, date) VALUES (?, ?, ?, ?, ?, ?)";
+    const insertDocumentParams = [
       filename,
       document.type,
       document.appointment_id,
@@ -61,12 +90,41 @@ exports.createDocument = (clinicDbName, document) => {
       document.patient_id,
       todayDate,
     ];
-    pool.query(query, queryParams, (err, result) => {
+    pool.query(insertDocumentQuery, insertDocumentParams, (err, result) => {
       if (err) {
-        reject(err);
-      } else {
-        resolve({ id: result.insertId, ...result });
+        return reject(err);
       }
+      const updateAppointmentQuery =
+        "UPDATE Appointments SET status = 'completed' WHERE id = ?";
+      const updateAppointmentParams = [document.appointment_id];
+
+      pool.query(
+        updateAppointmentQuery,
+        updateAppointmentParams,
+        (updateErr) => {
+          if (updateErr) {
+            return reject(updateErr);
+          }
+
+          const insertPaiementQuery =
+            "INSERT INTO payments (amount, date, appointment_id, status) VALUES (?, ?, ?, 'pending')";
+          const insertPaiementParams = [
+            document.prix_consultation,
+            todayDate,
+            document.appointment_id,
+          ];
+          pool.query(
+            insertPaiementQuery,
+            insertPaiementParams,
+            (paiementErr) => {
+              if (paiementErr) {
+                return resolve({ id: result.insertId, ...result });
+              }
+              resolve({ id: result.insertId, ...result });
+            }
+          );
+        }
+      );
     });
   });
 };

@@ -73,6 +73,8 @@ function createClinicDB(code, adminEmail, adminPassword) {
     `CREATE TABLE Payments (
             id INT PRIMARY KEY AUTO_INCREMENT,
             amount DECIMAL(10,2) NOT NULL,
+            paid_amount DECIMAL(10,2) DEFAULT 0,
+            advanced_amount DECIMAL(10,2) DEFAULT 0,
             date DATE NOT NULL,
             method VARCHAR(255) NOT NULL,
             appointment_id INT NOT NULL,
