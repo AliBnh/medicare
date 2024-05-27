@@ -32,17 +32,36 @@ exports.createUser = (
   });
 };
 
+// exports.getAllUsers = (clinicDbName) => {
+//   return new Promise((resolve, reject) => {
+//     try {
+//       const pool = getConnectionPool(clinicDbName);
+//       pool.query("SELECT * FROM users WHERE role != 'admin'", (err, result) => {
+//         if (err) {
+//           reject(err);
+//         } else {
+//           resolve(result);
+//         }
+//       });
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// };
 exports.getAllUsers = (clinicDbName) => {
   return new Promise((resolve, reject) => {
     try {
       const pool = getConnectionPool(clinicDbName);
-      pool.query("SELECT * FROM users WHERE role != 'admin'", (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
+      pool.query(
+        "SELECT * FROM Users WHERE role != 'admin' AND archived = 0",
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
         }
-      });
+      );
     } catch (error) {
       reject(error);
     }
@@ -71,7 +90,7 @@ exports.searchUser = (search, clinicDbName) => {
     try {
       const pool = getConnectionPool(clinicDbName);
       pool.query(
-        "SELECT * FROM users WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR role LIKE ? ",
+        "SELECT * FROM users WHERE archived = 0 AND role != 'admin' AND (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR role LIKE ?)",
         [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`],
         (err, result) => {
           if (err) {
@@ -115,17 +134,61 @@ exports.updateUserById = (
   });
 };
 
+// exports.deleteUserById = (id, clinicDbName) => {
+//   return new Promise((resolve, reject) => {
+//     try {
+//       const pool = getConnectionPool(clinicDbName);
+//       pool.query("DELETE FROM users WHERE id = ?", [id], (err, result) => {
+//         if (err) {
+//           reject(err);
+//         } else {
+//           resolve("Values Deleted");
+//         }
+//       });
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// };
+
 exports.deleteUserById = (id, clinicDbName) => {
   return new Promise((resolve, reject) => {
     try {
       const pool = getConnectionPool(clinicDbName);
-      pool.query("DELETE FROM users WHERE id = ?", [id], (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve("Values Deleted");
+
+      pool.query(
+        "SELECT * FROM DoctorPatientLinks WHERE doctor_id = ?",
+        [id],
+        (err, result) => {
+          if (err) {
+            reject(err);
+          } else if (result.length > 0) {
+            pool.query(
+              "UPDATE Users SET archived = 1 WHERE id = ?",
+              [id],
+              (err, result) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve("User Archived");
+                }
+              }
+            );
+          } else {
+            pool.query(
+              "DELETE FROM Users WHERE id = ?",
+              [id],
+              (err, result) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve("User Deleted");
+                }
+              }
+            );
+          }
         }
-      });
+      );
     } catch (error) {
       reject(error);
     }

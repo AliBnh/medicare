@@ -26,7 +26,8 @@ function createClinicDB(code, adminEmail, adminPassword) {
             email VARCHAR(255) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
             role ENUM('doctor', 'secretary','admin') NOT NULL,
-            clinic_id  VARCHAR(255) NOT NULL
+            clinic_id  VARCHAR(255) NOT NULL,
+            archived BOOLEAN DEFAULT 0
         )`
   );
   db.query(
@@ -53,7 +54,8 @@ function createClinicDB(code, adminEmail, adminPassword) {
             cin VARCHAR(255),
             weight INT,
             height INT,
-            Insurance VARCHAR(255)
+            Insurance VARCHAR(255),
+            archived BOOLEAN DEFAULT 0
               )`
   );
   db.query(
@@ -63,6 +65,7 @@ function createClinicDB(code, adminEmail, adminPassword) {
             time TIME NOT NULL,
             patient_id INT NOT NULL,
             doctor_id INT NOT NULL,
+            archived BOOLEAN DEFAULT 0,
             type ENUM('consultation', 'test', 'control'),
             status ENUM('completed', 'pending', 'cancelled') DEFAULT 'pending',
             FOREIGN KEY (patient_id) REFERENCES Patients(id),

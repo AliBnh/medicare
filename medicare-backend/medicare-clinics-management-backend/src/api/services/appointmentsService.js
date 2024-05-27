@@ -1,5 +1,5 @@
 const getConnectionPool = require("../../config/connectionPool");
-const moment = require("moment"); // Ensure you have moment.js installed to handle date and time comparisons
+const moment = require("moment");
 
 // async function getAppointments(clinicDbName, role, id) {
 //   return new Promise((resolve, reject) => {
@@ -26,11 +26,62 @@ const moment = require("moment"); // Ensure you have moment.js installed to hand
 //     query +=
 //       " ORDER BY STR_TO_DATE(CONCAT(a.date, ' ', a.time), '%Y-%m-%d %H:%i:%s') DESC ";
 
-//     pool.query(query, queryParams, (err, result) => {
+//     pool.query(query, queryParams, async (err, result) => {
 //       if (err) {
-//         reject(err);
-//       } else {
+//         return reject(err);
+//       }
+
+//       const currentTime = moment();
+//       const appointmentsToUpdate = [];
+
+//       for (const appointment of result) {
+//         const appointmentDateStr = appointment.date;
+//         const appointmentTimeStr = appointment.time;
+//         const appointmentDate = moment(appointmentDateStr).format("YYYY-MM-DD");
+//         const appointmentDateTimeStr = `${appointmentDate} ${appointmentTimeStr}`;
+//         const appointmentTime = moment(
+//           appointmentDateTimeStr,
+//           "YYYY-MM-DD HH:mm:ss"
+//         );
+
+//         console.log("appointmentDateStr:", appointmentDateStr);
+//         console.log("appointmentTimeStr:", appointmentTimeStr);
+//         console.log("appointmentDateTimeStr:", appointmentDateTimeStr);
+//         console.log(
+//           "appointmentTime:",
+//           appointmentTime.isValid() ? appointmentTime.format() : "Invalid date"
+//         );
+
+//         if (
+//           appointment.status === "pending" &&
+//           appointmentTime.isBefore(currentTime)
+//         ) {
+//           appointment.status = "cancelled";
+//           appointmentsToUpdate.push(appointment);
+//         }
+//       }
+
+//       // Update statuses for the necessary appointments
+//       const updatePromises = appointmentsToUpdate.map((appointment) => {
+//         return new Promise((resolve, reject) => {
+//           pool.query(
+//             "UPDATE appointments SET status = 'cancelled' WHERE id = ?",
+//             [appointment.id],
+//             (err, result) => {
+//               if (err) {
+//                 return reject(err);
+//               }
+//               resolve(result);
+//             }
+//           );
+//         });
+//       });
+
+//       try {
+//         await Promise.all(updatePromises);
 //         resolve(result);
+//       } catch (updateError) {
+//         reject(updateError);
 //       }
 //     });
 //   });
@@ -46,13 +97,14 @@ async function getAppointments(clinicDbName, role, id) {
              CONCAT(p.first_name, ' ', p.last_name) AS patient_name
       FROM appointments a
       JOIN users d ON a.doctor_id = d.id
-      JOIN patients p ON a.patient_id = p.id`;
+      JOIN patients p ON a.patient_id = p.id
+      WHERE a.archived = 0`;
 
     let queryParams = [];
 
     if (role === "admin" || role === "secretary") {
     } else if (role === "doctor") {
-      query += " WHERE a.doctor_id = ?";
+      query += " AND a.doctor_id = ?";
       queryParams.push(id);
     } else {
       return reject("Unauthorized");
@@ -74,12 +126,18 @@ async function getAppointments(clinicDbName, role, id) {
         const appointmentTimeStr = appointment.time;
         const appointmentDate = moment(appointmentDateStr).format("YYYY-MM-DD");
         const appointmentDateTimeStr = `${appointmentDate} ${appointmentTimeStr}`;
-        const appointmentTime = moment(appointmentDateTimeStr, "YYYY-MM-DD HH:mm:ss");
+        const appointmentTime = moment(
+          appointmentDateTimeStr,
+          "YYYY-MM-DD HH:mm:ss"
+        );
 
         console.log("appointmentDateStr:", appointmentDateStr);
         console.log("appointmentTimeStr:", appointmentTimeStr);
         console.log("appointmentDateTimeStr:", appointmentDateTimeStr);
-        console.log("appointmentTime:", appointmentTime.isValid() ? appointmentTime.format() : "Invalid date");
+        console.log(
+          "appointmentTime:",
+          appointmentTime.isValid() ? appointmentTime.format() : "Invalid date"
+        );
 
         if (
           appointment.status === "pending" &&
@@ -90,7 +148,6 @@ async function getAppointments(clinicDbName, role, id) {
         }
       }
 
-      // Update statuses for the necessary appointments
       const updatePromises = appointmentsToUpdate.map((appointment) => {
         return new Promise((resolve, reject) => {
           pool.query(
@@ -116,9 +173,6 @@ async function getAppointments(clinicDbName, role, id) {
   });
 }
 
-
-
-
 async function searchAppointments(clinicDbName, role, id, search) {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
@@ -128,18 +182,19 @@ async function searchAppointments(clinicDbName, role, id, search) {
              CONCAT(p.first_name, ' ', p.last_name) AS patient_name
       FROM appointments a
       JOIN users d ON a.doctor_id = d.id
-      JOIN patients p ON a.patient_id = p.id`;
+      JOIN patients p ON a.patient_id = p.id
+      WHERE a.archived = 0`;
 
     let queryParams = [`%${search}%`, `%${search}%`, `%${search}%`];
 
     if (role === "admin" || role === "secretary") {
       query += `
-        WHERE p.first_name LIKE ? 
+        AND p.first_name LIKE ? 
         OR p.last_name LIKE ? 
         OR p.cin LIKE ?`;
     } else if (role === "doctor") {
       query += `
-        WHERE a.doctor_id = ? 
+        AND a.doctor_id = ? 
         AND (p.first_name LIKE ? 
         OR p.last_name LIKE ? 
         OR p.cin LIKE ?)`;
@@ -241,17 +296,59 @@ async function updateAppointment(clinicDbName, id, appointment) {
   });
 }
 
+// async function deleteAppointment(clinicDbName, id) {
+//   return new Promise((resolve, reject) => {
+//     const pool = getConnectionPool(clinicDbName);
+
+//     pool.query("DELETE FROM appointments WHERE id = ?", [id], (err, result) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve(result);
+//       }
+//     });
+//   });
+// }
+
 async function deleteAppointment(clinicDbName, id) {
   return new Promise((resolve, reject) => {
     const pool = getConnectionPool(clinicDbName);
 
-    pool.query("DELETE FROM appointments WHERE id = ?", [id], (err, result) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
+    pool.query(
+      "SELECT * FROM Payments WHERE appointment_id = ?",
+      [id],
+      (err, result) => {
+        if (err) {
+          reject(err);
+        } else if (result.length > 0) {
+          // If the appointment is referenced in Payments, archive the appointment
+          pool.query(
+            "UPDATE Appointments SET archived = 1 WHERE id = ?",
+            [id],
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve("Appointment Archived");
+              }
+            }
+          );
+        } else {
+          // If the appointment is not referenced in Payments, delete the appointment
+          pool.query(
+            "DELETE FROM Appointments WHERE id = ?",
+            [id],
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve("Appointment Deleted");
+              }
+            }
+          );
+        }
       }
-    });
+    );
   });
 }
 
