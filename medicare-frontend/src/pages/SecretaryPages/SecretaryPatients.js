@@ -753,7 +753,7 @@ function SecretaryPatients() {
                             onChange={(e) => setTime(e.target.value)}
                           />
                         </div> */}
-                        <div className="w-1/2 m-2 md:w-1/2 px-3">
+                        <div className="w-1/2  md:w-1/2 px-3">
                           <label
                             className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2"
                             htmlFor="time-select"
