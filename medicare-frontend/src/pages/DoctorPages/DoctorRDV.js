@@ -519,7 +519,6 @@ function DoctorRDV() {
                                 <TrashIcon className="h-4 w-4" color="red" />
                               </IconButton>
                             </Tooltip>
-                            {status == "pending" ? (
                               <Tooltip content="Consulter">
                                 <IconButton
                                   variant="text"
@@ -533,9 +532,7 @@ function DoctorRDV() {
                                   <ScanEye className="h-4 w-4 text-green-500" />
                                 </IconButton>
                               </Tooltip>
-                            ) : (
-                              <></>
-                            )}
+                    
                           </div>
                         </td>
                       </tr>
